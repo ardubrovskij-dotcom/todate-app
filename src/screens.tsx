@@ -258,6 +258,97 @@ export function Invite({ ctx }: { ctx: AppCtx }) {
           <button className="btn-ghost" style={{ width: '100%', marginTop: 10 }} onClick={() => ctx.go({ name: 'home' })}>
             {sent ? 'Перейти в картотеку' : 'Приглашу позже'}
           </button>
+          <button style={{ background: 'none', border: 'none', width: '100%', marginTop: 8, fontSize: 12, color: 'var(--text-2)', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => ctx.go({ name: 'accept' })}>
+            Посмотреть, что получит партнёр
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ================= ПРИЁМ ПРИГЛАШЕНИЯ (сторона партнёра) ================= */
+export function Accept({ ctx }: { ctx: AppCtx }) {
+  const inviter = ctx.profile.name || 'Ваша половинка';
+  const [step, setStep] = useState<'letter' | 'form' | 'done'>('letter');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState(ctx.profile.partner ?? '');
+  const valid = name.trim().length >= 2 && /.+@.+\..+/.test(email);
+  return (
+    <div style={{ paddingBottom: 60 }}>
+      <div style={{ padding: '26px 0 6px', textAlign: 'center' }}><Logo /></div>
+      <div className="sheet" style={{ marginTop: 14, minHeight: '70dvh' }}>
+        <div className="sheet-handle" />
+        <div style={px}>
+          {step === 'letter' && (
+            <>
+              <div className="deck-card" style={{ height: 190, margin: '4px 0 18px' }}>
+                <Silhouette shape="sun" color="var(--pink-shape)" />
+                <div style={{ position: 'absolute', top: 14, left: 0, right: 0, textAlign: 'center' }}><Logo dark small /></div>
+                <div className="font-head" style={{ position: 'absolute', left: 16, right: 16, top: '50%', transform: 'translateY(-40%)', fontSize: 20, lineHeight: '21px', color: 'var(--card-ink)', textAlign: 'center' }}>
+                  {inviter} приглашает вас в TO DATE
+                </div>
+              </div>
+              <h1 className="h1" style={{ margin: '0 0 8px' }}>Вас позвали на свидания</h1>
+              <p style={{ fontSize: 13, lineHeight: '17px', color: 'var(--text-2)', marginTop: 0 }}>
+                {inviter} завёл(а) для вас двоих картотеку свиданий по Петербургу: идеи, маршруты и события недели — плюс намёки, которые можно слать друг другу на почту.
+              </p>
+              <div style={{ display: 'grid', gap: 10, marginTop: 14 }}>
+                {['70+ идей в 4 категориях, обновление каждую неделю', 'Маршруты по районам и афиша событий', 'Намёки с секретным бонусом-сюрпризом'].map((t) => (
+                  <div key={t} className="plate" style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '12px 14px' }}>
+                    <span style={{ color: 'var(--primary)', flex: 'none' }}><IconCheck /></span>
+                    <span style={{ fontSize: 13, lineHeight: '16px' }}>{t}</span>
+                  </div>
+                ))}
+              </div>
+              <button className="btn-primary" style={{ width: '100%', marginTop: 18 }} onClick={() => setStep('form')}>
+                Принять приглашение
+              </button>
+              <button style={{ background: 'none', border: 'none', width: '100%', marginTop: 10, fontSize: 12, color: 'var(--text-2)', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => ctx.go({ name: 'landing' })}>
+                Сначала почитать о проекте
+              </button>
+            </>
+          )}
+          {step === 'form' && (
+            <>
+              <h1 className="h1" style={{ margin: '0 0 8px' }}>Пара слов о вас</h1>
+              <p style={{ fontSize: 13, lineHeight: '17px', color: 'var(--text-2)', marginTop: 0 }}>
+                Так {inviter} увидит вас в картотеке. Намёки будут приходить на этот e-mail.
+              </p>
+              <div className="plate" style={{ display: 'grid', gap: 12, padding: 16, marginTop: 14 }}>
+                <div>
+                  <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Ваше имя</label>
+                  <input className="input" placeholder="Например, Тимур" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+                </div>
+                <div>
+                  <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>E-mail</label>
+                  <input className="input" placeholder="you@example.com" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                </div>
+              </div>
+              <button className="btn-primary" style={{ width: '100%', marginTop: 16 }} disabled={!valid} onClick={() => setStep('done')}>
+                Присоединиться к {inviter}
+              </button>
+            </>
+          )}
+          {step === 'done' && (
+            <>
+              <div style={{ textAlign: 'center', padding: '10px 0 4px' }}>
+                <div className="avatar-fab" style={{ width: 96, height: 96, margin: '0 auto' }}>
+                  <span style={{ width: 88, height: 88, fontSize: 34 }}>{name.charAt(0).toUpperCase()}</span>
+                </div>
+              </div>
+              <h1 className="h1" style={{ margin: '12px 0 8px', textAlign: 'center' }}>Вы в паре!</h1>
+              <p style={{ fontSize: 13, lineHeight: '17px', color: 'var(--text-2)', marginTop: 0, textAlign: 'center' }}>
+                {name.trim()}, теперь вы с {inviter} — пара в TO DATE. Загляните в картотеку и отправьте первый намёк.
+              </p>
+              <div className="plate" style={{ marginTop: 14, padding: 16, background: 'linear-gradient(140deg, var(--pink-back), #EFF4FD)', fontSize: 13, lineHeight: '17px' }}>
+                Совет: самый быстрый способ удивить половинку — открыть карточку и нажать «Намекнуть о свидании». Секретный бонус не узнаете даже вы.
+              </div>
+              <button className="btn-primary" style={{ width: '100%', marginTop: 18 }} onClick={() => { ctx.toast(`Добро пожаловать, ${name.trim()}! (демо)`); ctx.go({ name: 'home' }); }}>
+                Смотреть картотеку
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
