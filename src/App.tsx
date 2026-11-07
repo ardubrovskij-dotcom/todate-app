@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Header, BottomNav, type NavKey, IconBell } from './ui';
-import { Landing, Home, IdeaDetail, HintForm, HintSent, MyHints, Favorites, Routes, RouteDetail, Events, Profile, Account, Paywall, Notes } from './screens';
+import { Landing, Auth, Invite, Home, IdeaDetail, HintForm, HintSent, MyHints, Favorites, Routes, RouteDetail, Events, Profile, Account, Paywall, Notes } from './screens';
 
 export type RouteName =
-  | 'landing' | 'home' | 'idea' | 'hint' | 'hint-sent' | 'hints'
+  | 'landing' | 'auth' | 'invite' | 'home' | 'idea' | 'hint' | 'hint-sent' | 'hints'
   | 'favorites' | 'routes' | 'route' | 'events' | 'profile' | 'account' | 'paywall' | 'notes';
 
 export interface Route { name: RouteName; id?: string }
@@ -19,8 +19,11 @@ export interface AppCtx {
   sendHint: (ideaId: string, from: string, to: string) => void;
   subscribed: number;
   subscribe: (days: number) => void;
-  profile: { name: string; email: string };
-  setProfile: (p: { name: string; email: string }) => void;
+  profile: { name: string; email: string; partner?: string };
+  setProfile: (p: { name: string; email: string; partner?: string }) => void;
+  registered: boolean;
+  register: (name: string, email: string) => void;
+  invitePartner: (email: string) => void;
   toast: (msg: string) => void;
 }
 
@@ -34,7 +37,7 @@ function load<T>(key: string, fallback: T): T {
 function routeFromHash(): Route {
   const h = window.location.hash.replace(/^#\/?/, '');
   const [name, id] = h.split('/');
-  const names: RouteName[] = ['landing', 'home', 'idea', 'hint', 'hint-sent', 'hints', 'favorites', 'routes', 'route', 'events', 'profile', 'account', 'paywall', 'notes'];
+  const names: RouteName[] = ['landing', 'auth', 'invite', 'home', 'idea', 'hint', 'hint-sent', 'hints', 'favorites', 'routes', 'route', 'events', 'profile', 'account', 'paywall', 'notes'];
   if (names.includes(name as RouteName)) return { name: name as RouteName, id };
   return { name: 'landing' };
 }
@@ -51,6 +54,7 @@ export default function App() {
   );
   const [subscribed, setSubscribed] = useState<number>(() => load('td_sub', 0));
   const [profile, setProfile] = useState(() => load('td_profile', { name: 'Каролина', email: 'karolina@example.com' }));
+  const [registered, setRegistered] = useState<boolean>(() => load('td_registered', false));
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -59,6 +63,7 @@ export default function App() {
   useEffect(() => { localStorage.setItem('td_hints', JSON.stringify(hints)); }, [hints]);
   useEffect(() => { localStorage.setItem('td_sub', JSON.stringify(subscribed)); }, [subscribed]);
   useEffect(() => { localStorage.setItem('td_profile', JSON.stringify(profile)); }, [profile]);
+  useEffect(() => { localStorage.setItem('td_registered', JSON.stringify(registered)); }, [registered]);
 
   const go = useCallback((r: Route) => {
     setRoute((cur) => { historyRef.current = [...historyRef.current, cur]; return r; });
@@ -89,8 +94,11 @@ export default function App() {
     subscribed,
     subscribe: (days) => setSubscribed(days),
     profile, setProfile,
+    registered,
+    register: (name, email) => { setProfile({ name, email }); setRegistered(true); },
+    invitePartner: (email) => setProfile((p) => ({ ...p, partner: email })),
     toast,
-  }), [go, back, favorites, hints, subscribed, profile, toast]);
+  }), [go, back, favorites, hints, subscribed, profile, registered, toast]);
 
   const navActive: NavKey =
     route.name === 'home' || route.name === 'idea' || route.name === 'hint' || route.name === 'hint-sent' ? 'home'
@@ -98,7 +106,7 @@ export default function App() {
     : route.name === 'favorites' ? 'favorites'
     : 'profile';
 
-  const showNav = route.name !== 'landing';
+  const showNav = route.name !== 'landing' && route.name !== 'auth' && route.name !== 'invite';
   const goNav = (k: NavKey) =>
     k === 'home' ? go({ name: 'home' })
     : k === 'routes' ? go({ name: 'routes' })
@@ -107,9 +115,11 @@ export default function App() {
 
   return (
     <div className="phone">
-      {route.name !== 'landing' && <Header onBell={() => setNotifOpen(true)} onSearch={() => setSearchOpen(true)} />}
+      {route.name !== 'landing' && route.name !== 'auth' && route.name !== 'invite' && <Header onBell={() => setNotifOpen(true)} onSearch={() => setSearchOpen(true)} />}
 
       {route.name === 'landing' && <Landing ctx={ctx} />}
+      {route.name === 'auth' && <Auth ctx={ctx} />}
+      {route.name === 'invite' && <Invite ctx={ctx} />}
       {route.name === 'home' && <Home ctx={ctx} />}
       {route.name === 'idea' && <IdeaDetail ctx={ctx} id={route.id!} />}
       {route.name === 'hint' && <HintForm ctx={ctx} id={route.id!} />}

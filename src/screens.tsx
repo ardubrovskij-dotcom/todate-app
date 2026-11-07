@@ -77,9 +77,14 @@ export function Landing({ ctx }: { ctx: AppCtx }) {
         <button className="btn-primary" style={{ width: '100%' }} onClick={() => setTestOpen(true)}>
           Намекнуть о свидании — тест
         </button>
-        <button className="btn-ghost" style={{ width: '100%' }} onClick={() => ctx.go({ name: 'home' })}>
-          Открыть картотеку (демо)
+        <button className="btn-ghost" style={{ width: '100%' }} onClick={() => ctx.go({ name: ctx.registered ? 'home' : 'auth' })}>
+          {ctx.registered ? 'Открыть картотеку' : 'Создать аккаунт'}
         </button>
+        {!ctx.registered && (
+          <button style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--text-2)', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => ctx.go({ name: 'home' })}>
+            Сначала посмотреть демо
+          </button>
+        )}
       </div>
 
       <div style={{ ...px, marginTop: 34 }}>
@@ -169,6 +174,91 @@ function TestHintModal({ onClose, ctx }: { onClose: () => void; ctx: AppCtx }) {
             <button className="btn-ghost" style={{ width: '100%', marginTop: 10 }} onClick={onClose}>Закрыть</button>
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+/* ================= РЕГИСТРАЦИЯ ================= */
+export function Auth({ ctx }: { ctx: AppCtx }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const valid = name.trim().length >= 2 && /.+@.+\..+/.test(email);
+  return (
+    <div style={{ paddingBottom: 60 }}>
+      <div style={{ padding: '26px 0 6px', textAlign: 'center' }}><Logo /></div>
+      <div className="sheet" style={{ marginTop: 14, minHeight: '70dvh' }}>
+        <div className="sheet-handle" />
+        <div style={px}>
+          <h1 className="h1" style={{ margin: '0 0 8px' }}>Регистрация</h1>
+          <p style={{ fontSize: 13, lineHeight: '17px', color: 'var(--text-2)', marginTop: 0 }}>
+            Картотека — для двоих. Сначала расскажите, как вас зовут, потом пригласите половинку.
+          </p>
+          <div className="plate" style={{ display: 'grid', gap: 12, padding: 16, marginTop: 14 }}>
+            <div>
+              <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Ваше имя</label>
+              <input className="input" placeholder="Например, Алина" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+            </div>
+            <div>
+              <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>E-mail</label>
+              <input className="input" placeholder="you@example.com" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+          </div>
+          <button
+            className="btn-primary" style={{ width: '100%', marginTop: 16 }} disabled={!valid}
+            onClick={() => { ctx.register(name.trim(), email.trim()); ctx.go({ name: 'invite' }); }}
+          >
+            Продолжить
+          </button>
+          <p style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 12, textAlign: 'center' }}>
+            В MVP аккаунт хранится только в этом браузере. Пароль и письма с кодом появятся в боевой версии.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ================= ПРИГЛАШЕНИЕ ПОЛОВИНКИ ================= */
+export function Invite({ ctx }: { ctx: AppCtx }) {
+  const [email, setEmail] = useState(ctx.profile.partner ?? '');
+  const [sent, setSent] = useState(false);
+  const valid = /.+@.+\..+/.test(email);
+  return (
+    <div style={{ paddingBottom: 60 }}>
+      <div style={{ padding: '26px 0 6px', textAlign: 'center' }}><Logo /></div>
+      <div className="sheet" style={{ marginTop: 14, minHeight: '70dvh' }}>
+        <div className="sheet-handle" />
+        <div style={px}>
+          <h1 className="h1" style={{ margin: '0 0 8px' }}>Пригласите половинку</h1>
+          <p style={{ fontSize: 13, lineHeight: '17px', color: 'var(--text-2)', marginTop: 0 }}>
+            На почту партнёра придёт приглашение. Как только оно принято, вы увидите друг друга в профиле и сможете слать намёки.
+          </p>
+          <div className="plate" style={{ marginTop: 14, padding: 16, background: 'linear-gradient(140deg, var(--pink-back), #EFF4FD)' }}>
+            <div style={{ fontSize: 11, color: 'var(--text-2)', marginBottom: 6 }}>Так выглядит приглашение:</div>
+            <div className="font-head" style={{ fontSize: 20, lineHeight: '21px' }}>
+              {ctx.profile.name || 'Ваша половинка'} приглашает вас в TO DATE
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 6 }}>
+              «Я завёл(а) нам картотеку свиданий по Петербургу. Присоединяйся — будет о чём мечтать по будням».
+            </div>
+          </div>
+          <div className="plate" style={{ display: 'grid', gap: 12, padding: 16, marginTop: 10 }}>
+            <div>
+              <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>E-mail партнёра</label>
+              <input className="input" placeholder="partner@example.com" inputMode="email" value={email} onChange={(e) => { setEmail(e.target.value); setSent(false); }} />
+            </div>
+          </div>
+          <button
+            className="btn-primary" style={{ width: '100%', marginTop: 16 }} disabled={!valid || sent}
+            onClick={() => { ctx.invitePartner(email.trim()); setSent(true); ctx.toast('Приглашение отправлено (демо)'); }}
+          >
+            {sent ? 'Приглашение отправлено ✓' : 'Отправить приглашение'}
+          </button>
+          <button className="btn-ghost" style={{ width: '100%', marginTop: 10 }} onClick={() => ctx.go({ name: 'home' })}>
+            {sent ? 'Перейти в картотеку' : 'Приглашу позже'}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -622,6 +712,7 @@ export function Profile({ ctx }: { ctx: AppCtx }) {
         <div className="h1" style={{ marginTop: 12 }}>{ctx.profile.name}</div>
         <div style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 4 }}>
           {ctx.subscribed ? `Подписка активна · осталось ${ctx.subscribed} дн.` : 'Подписка не оформлена'}
+          {ctx.profile.partner ? ` · пара: ${ctx.profile.partner}` : ''}
         </div>
       </div>
       <div style={{ ...px, marginTop: 24, display: 'grid', gap: 18 }}>
@@ -667,15 +758,22 @@ export function Account({ ctx }: { ctx: AppCtx }) {
               <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} inputMode="email" />
             </div>
             <div>
-              <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>E-mail партнёра</label>
-              <input className="input" placeholder="Пригласите половинку" inputMode="email" />
+              <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Половинка</label>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div style={{ flex: 1, fontSize: 13, color: ctx.profile.partner ? 'var(--text)' : 'var(--text-2)', minHeight: 40, display: 'flex', alignItems: 'center' }}>
+                  {ctx.profile.partner ? `Приглашение отправлено: ${ctx.profile.partner}` : 'Партнёр ещё не приглашён'}
+                </div>
+                <button className="btn-ghost" style={{ height: 40, flex: 'none' }} onClick={() => ctx.go({ name: 'invite' })}>
+                  {ctx.profile.partner ? 'Изменить' : 'Пригласить'}
+                </button>
+              </div>
             </div>
           </div>
-          <button className="btn-primary" style={{ width: '100%', marginTop: 16 }} onClick={() => { ctx.setProfile({ name: name.trim() || 'Гость', email }); ctx.toast('Сохранено'); ctx.back(); }}>
+          <button className="btn-primary" style={{ width: '100%', marginTop: 16 }} onClick={() => { ctx.setProfile({ ...ctx.profile, name: name.trim() || 'Гость', email }); ctx.toast('Сохранено'); ctx.back(); }}>
             Сохранить
           </button>
           <p style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 12 }}>
-            В MVP данные хранятся только в этом браузере (localStorage). Регистрация и приглашение партнёра появятся в боевой версии.
+            В MVP данные хранятся только в этом браузере (localStorage). Регистрация по почте и синхронизация пары появятся в боевой версии.
           </p>
         </div>
       </div>
