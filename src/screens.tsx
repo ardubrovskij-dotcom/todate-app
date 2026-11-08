@@ -31,6 +31,9 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
   const [dragging, setDragging] = useState(false);
   const [leaving, setLeaving] = useState<0 | 1 | -1>(0);
   const startX = React.useRef<number | null>(null);
+  const lastX = React.useRef(0);
+  const lastT = React.useRef(0);
+  const vel = React.useRef(0);
   const swiped = React.useRef(false);
   const n = ideas.length;
   const done = idx >= n;
@@ -60,10 +63,10 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
         return { transform: `perspective(900px) rotateY(${leaving * -80}deg)`, opacity: 0, transition: 'transform .34s cubic-bezier(.3,.7,.4,1), opacity .34s ease' };
       if (deckAnim === 'deal')
         return { transform: `translateY(${height * 0.6}px) rotate(${leaving * -10}deg)`, opacity: 0, transition: 'transform .34s cubic-bezier(.3,.7,.4,1), opacity .34s ease' };
-      return { transform: `translateX(${leaving * (w + 240)}px) rotate(${leaving * 22}deg)`, opacity: 0.9, transition: 'transform .36s cubic-bezier(.3,.7,.4,1), opacity .36s ease' };
+      return { transform: `translateX(${leaving * (w + 280)}px) rotate(${leaving * 26}deg)`, opacity: 0, transition: 'transform .32s cubic-bezier(.2,.7,.3,1), opacity .32s ease' };
     }
     return {
-      transform: `translateX(${drag}px) rotate(${-3 + drag * 0.05}deg)`,
+      transform: `translateX(${drag}px) rotate(${-3 + drag * 0.08}deg)`,
       transition: dragging ? 'none' : 'transform .42s cubic-bezier(.2,.8,.3,1.08)',
     };
   };
@@ -74,12 +77,21 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
       onPointerDown={(e) => {
         if (leaving !== 0 || done) return;
         startX.current = e.clientX;
+        lastX.current = e.clientX;
+        lastT.current = e.timeStamp;
+        vel.current = 0;
         swiped.current = false;
         setDragging(true);
         (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
       }}
       onPointerMove={(e) => {
         if (startX.current == null) return;
+        const dt = e.timeStamp - lastT.current;
+        if (dt > 0) {
+          vel.current = vel.current * 0.6 + ((e.clientX - lastX.current) / dt) * 0.4;
+          lastX.current = e.clientX;
+          lastT.current = e.timeStamp;
+        }
         const dx = e.clientX - startX.current;
         if (Math.abs(dx) > 8) swiped.current = true;
         setDrag(dx);
@@ -87,10 +99,16 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
       onPointerUp={(e) => {
         if (startX.current == null) return;
         const dx = e.clientX - startX.current;
+        const v = vel.current;
         startX.current = null;
         setDragging(false);
-        if (Math.abs(dx) > 90) finishLeave(dx < 0 ? 1 : -1);
-        else setDrag(0);
+        // Летит, если тянули достаточно далеко ИЛИ бросили быстро
+        if (Math.abs(dx) > 60 || Math.abs(v) > 0.45) {
+          const dir = dx + v * 120 < 0 ? 1 : -1;
+          finishLeave(dir);
+        } else {
+          setDrag(0);
+        }
       }}
       onPointerCancel={() => { startX.current = null; setDragging(false); setDrag(0); }}
     >
