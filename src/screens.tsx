@@ -25,6 +25,9 @@ const deckAnim: DeckAnim = (() => {
   }
 })();
 
+/* Карта из макета: 297×395, радиус 21, передняя повернута на −3,4° */
+const CARD_RATIO = 297 / 395;
+
 export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: (id: string) => void; height?: number }) {
   const [idx, setIdx] = useState(0);
   const [drag, setDrag] = useState(0);
@@ -51,10 +54,10 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
     }, 320);
   };
 
-  /* Позы задних карт: веером влево и вправо, почти в полный размер (как в макете) */
+  /* Позы задних карт из макета: правая +6,9° чуть выше, левая −7,4° ниже */
   const BACK_POSES = [
-    { rot: 7, x: 42, y: 4, scale: 0.965 },
-    { rot: -8, x: -42, y: 10, scale: 0.93 },
+    { rot: 6.9, x: 27, y: 0, scale: 0.927 },
+    { rot: -7.4, x: -25, y: 20, scale: 0.927 },
   ];
 
   const frontTransform = (): React.CSSProperties => {
@@ -203,7 +206,7 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
 
 /* Одиночная карта (деталь идеи) — без задних карт, как в макете */
 export function SingleCard({ idea, height = 300 }: { idea: Idea; height?: number }) {
-  const w = Math.round(height * (275 / 395));
+  const w = Math.round(height * CARD_RATIO);
   return (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
       <div className={`deck-card ${catClass(idea.category)}`} style={{ width: w, height, transform: 'rotate(-3deg)', flex: 'none' }}>
@@ -244,10 +247,11 @@ export function MiniCard({ idea, w = 150, h = 190 }: { idea: Idea; w?: number; h
 }
 
 /* Круглая кнопка-иконка фильтров в ряду чипов */
-export function FiltersButton({ onClick }: { onClick: () => void }) {
+export function FiltersButton({ onClick, active = false }: { onClick: () => void; active?: boolean }) {
   return (
     <button className="chip-icon" onClick={onClick} aria-label="Фильтры" title="Фильтры">
       <IconSliders />
+      {active && <span className="dot" />}
     </button>
   );
 }
@@ -433,35 +437,132 @@ export function Accept({ ctx }: { ctx: AppCtx }) {
   );
 }
 
+/* ================= ФИЛЬТРЫ ================= */
+type PriceFilter = 'free' | 'to500' | 'to1000' | '1000plus';
+type DurFilter = 'to1' | '1to2' | '2plus';
+
+const priceOf = (s: string) => Number(s.replace(/[^\d]/g, '')) || 0;
+const hoursOf = (s: string) => {
+  const m = s.match(/(\d+(?:[.,]\d+)?)/);
+  if (!m) return 0;
+  const v = parseFloat(m[1].replace(',', '.'));
+  return s.includes('минут') ? v / 60 : v;
+};
+const matchPrice = (idea: Idea, f: PriceFilter | null) => {
+  if (!f) return true;
+  const p = priceOf(idea.price);
+  if (f === 'free') return p === 0;
+  if (f === 'to500') return p > 0 && p <= 500;
+  if (f === 'to1000') return p <= 1000;
+  return p > 1000;
+};
+const matchDur = (idea: Idea, f: DurFilter | null) => {
+  if (!f) return true;
+  const h = hoursOf(idea.duration);
+  if (f === 'to1') return h <= 1;
+  if (f === '1to2') return h > 1 && h <= 2;
+  return h > 2;
+};
+
+const PRICE_OPTS: { key: PriceFilter; label: string }[] = [
+  { key: 'free', label: 'Бесплатно' },
+  { key: 'to500', label: 'до 500 ₽' },
+  { key: 'to1000', label: 'до 1 000 ₽' },
+  { key: '1000plus', label: 'Дороже 1 000 ₽' },
+];
+const DUR_OPTS: { key: DurFilter; label: string }[] = [
+  { key: 'to1', label: 'до 1 часа' },
+  { key: '1to2', label: '1–2 часа' },
+  { key: '2plus', label: 'Больше 2 часов' },
+];
+
+export function IdeaFiltersSheet({
+  price, dur, count, onPrice, onDur, onReset, onClose,
+}: {
+  price: PriceFilter | null; dur: DurFilter | null; count: number;
+  onPrice: (v: PriceFilter | null) => void; onDur: (v: DurFilter | null) => void;
+  onReset: () => void; onClose: () => void;
+}) {
+  const group = <T extends string>(title: string, opts: { key: T; label: string }[], value: T | null, set: (v: T | null) => void) => (
+    <div style={{ marginTop: 16 }}>
+      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>{title}</div>
+      <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+        {opts.map((o) => (
+          <button key={o.key} className={`chip ${value === o.key ? 'active' : ''}`} onClick={() => set(value === o.key ? null : o.key)}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="sheet-handle" style={{ top: 0 }} />
+        <h2 className="h2" style={{ margin: 0 }}>Фильтры</h2>
+        {group('Цена на двоих', PRICE_OPTS, price, onPrice)}
+        {group('Длительность', DUR_OPTS, dur, onDur)}
+        <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
+          <button className="btn-ghost" style={{ flex: 1 }} onClick={onReset}>Сбросить</button>
+          <button className="btn-primary" style={{ flex: 2 }} onClick={onClose}>Показать: {count}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ================= ГЛАВНАЯ / КАТАЛОГ ================= */
 export function Home({ ctx }: { ctx: AppCtx }) {
   const [cat, setCat] = useState<Category | 'все'>('все');
-  const list = useMemo(() => (cat === 'все' ? IDEAS : IDEAS.filter((i) => i.category === cat)), [cat]);
+  const [priceF, setPriceF] = useState<PriceFilter | null>(null);
+  const [durF, setDurF] = useState<DurFilter | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const list = useMemo(
+    () => IDEAS.filter((i) => (cat === 'все' || i.category === cat) && matchPrice(i, priceF) && matchDur(i, durF)),
+    [cat, priceF, durF],
+  );
   return (
     <div style={{ paddingBottom: 130 }}>
       <div className="deck-stick">
-        <div style={{ height: 92 }} />
-        <Deck ideas={IDEAS.slice(0, 4)} onOpen={(id) => ctx.go({ name: 'idea', id })} height={360} />
+        <div style={{ height: 100 }} />
+        <Deck ideas={IDEAS.slice(0, 4)} onOpen={(id) => ctx.go({ name: 'idea', id })} height={395} />
       </div>
-      <div className="sheet" style={{ marginTop: -46, minHeight: '55dvh' }}>
+      <div className="sheet" style={{ marginTop: -83, minHeight: '55dvh' }}>
         <div className="sheet-handle" />
         <div style={px}>
           <h1 className="h1" style={{ margin: 0 }}>Все карточки</h1>
         </div>
-        <div className="row-scroll" style={{ ...px, marginTop: 19 }}>
-          <FiltersButton onClick={() => ctx.toast('Тонкие фильтры появятся в боевой версии')} />
+        <div className="row-scroll" style={{ ...px, marginTop: 10 }}>
+          <FiltersButton onClick={() => setFiltersOpen(true)} active={!!(priceF || durF)} />
           <button className={`chip ${cat === 'все' ? 'active' : ''}`} onClick={() => setCat('все')}>Все</button>
           {CATEGORIES.map((c) => (
             <button key={c.key} className={`chip ${cat === c.key ? 'active' : ''}`} onClick={() => setCat(c.key)}>{c.label}</button>
           ))}
         </div>
-        <div style={{ ...px, marginTop: 15, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+        <div style={{ ...px, marginTop: 15, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px 6px' }}>
           {list.map((i) => (
             <IdeaTile key={i.id} idea={i} onClick={() => ctx.go({ name: 'idea', id: i.id })} />
           ))}
         </div>
+        {list.length === 0 && (
+          <div style={{ ...px, marginTop: 20 }}>
+            <div className="plate" style={{ padding: 22, textAlign: 'center' }}>
+              <div className="font-head" style={{ fontSize: 22 }}>Ничего не нашлось</div>
+              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: '17px' }}>Попробуйте ослабить фильтры — или сбросьте их совсем.</p>
+              <button className="btn-ghost" onClick={() => { setPriceF(null); setDurF(null); setCat('все'); }}>Сбросить фильтры</button>
+            </div>
+          </div>
+        )}
         <div style={{ height: 30 }} />
       </div>
+      {filtersOpen && (
+        <IdeaFiltersSheet
+          price={priceF} dur={durF} count={list.length}
+          onPrice={setPriceF} onDur={setDurF}
+          onReset={() => { setPriceF(null); setDurF(null); }}
+          onClose={() => setFiltersOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -473,19 +574,19 @@ export function IdeaDetail({ ctx, id }: { ctx: AppCtx; id: string }) {
   return (
     <div style={{ paddingBottom: 130 }}>
       <div className="deck-stick">
-        <div style={{ height: 92 }} />
-        <SingleCard idea={idea} height={330} />
+        <div style={{ height: 84 }} />
+        <SingleCard idea={idea} height={360} />
       </div>
-      <div className="sheet" style={{ marginTop: -46 }}>
+      <div className="sheet" style={{ marginTop: -94 }}>
         <div className="sheet-handle" />
         <div style={px}>
           <h1 className="h2" style={{ margin: 0 }}>{idea.title}</h1>
-          <div className="row-scroll" style={{ marginTop: 14 }}>
+          <div className="row-scroll" style={{ marginTop: 10 }}>
             <span className="param">{idea.duration}</span>
             <span className="param">{idea.price}</span>
             <span className="param">{idea.metro}</span>
           </div>
-          <p style={{ fontSize: 13, lineHeight: '17px', maxWidth: 330, margin: '14px 0 0' }}>{idea.description}</p>
+          <p style={{ fontSize: 13, lineHeight: '17px', maxWidth: 330, margin: '10px 0 0' }}>{idea.description}</p>
           <div style={{ display: 'flex', gap: 8, marginTop: 22, alignItems: 'center' }}>
             <button className="btn-primary" style={{ flex: 1, padding: '0 16px' }} onClick={() => ctx.go({ name: 'hint', id: idea.id })}>
               Намекнуть о свидании
@@ -674,8 +775,11 @@ export function MyHints({ ctx }: { ctx: AppCtx }) {
 /* ================= ИЗБРАННОЕ ================= */
 export function Favorites({ ctx }: { ctx: AppCtx }) {
   const [cat, setCat] = useState<Category | 'все'>('все');
+  const [priceF, setPriceF] = useState<PriceFilter | null>(null);
+  const [durF, setDurF] = useState<DurFilter | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const favs = IDEAS.filter((i) => ctx.favorites.includes(i.id));
-  const list = cat === 'все' ? favs : favs.filter((i) => i.category === cat);
+  const list = favs.filter((i) => (cat === 'все' || i.category === cat) && matchPrice(i, priceF) && matchDur(i, durF));
   const fan = favs.slice(0, 5);
   return (
     <div style={{ paddingBottom: 130 }}>
@@ -714,8 +818,8 @@ export function Favorites({ ctx }: { ctx: AppCtx }) {
         <div style={px}>
           <h1 className="h1" style={{ margin: 0 }}>Всё избранное</h1>
         </div>
-        <div className="row-scroll" style={{ ...px, marginTop: 19 }}>
-          <FiltersButton onClick={() => ctx.toast('Тонкие фильтры появятся в боевой версии')} />
+        <div className="row-scroll" style={{ ...px, marginTop: 10 }}>
+          <FiltersButton onClick={() => setFiltersOpen(true)} active={!!(priceF || durF)} />
           <button className={`chip ${cat === 'все' ? 'active' : ''}`} onClick={() => setCat('все')}>Все</button>
           {CATEGORIES.map((c) => (
             <button key={c.key} className={`chip ${cat === c.key ? 'active' : ''}`} onClick={() => setCat(c.key)}>{c.label}</button>
@@ -725,17 +829,33 @@ export function Favorites({ ctx }: { ctx: AppCtx }) {
           {list.length === 0 ? (
             <div className="plate" style={{ padding: 22, textAlign: 'center' }}>
               <div className="font-head" style={{ fontSize: 22 }}>Пока пусто</div>
-              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: '17px' }}>Нажимайте на сердечко в карточке идеи — она появится здесь.</p>
-              <button className="btn-primary" onClick={() => ctx.go({ name: 'home' })}>В каталог</button>
+              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: '17px' }}>
+                {favs.length === 0
+                  ? 'Нажимайте на сердечко в карточке идеи — она появится здесь.'
+                  : 'Под такие фильтры ничего не подходит — попробуйте их ослабить.'}
+              </p>
+              {favs.length === 0 ? (
+                <button className="btn-primary" onClick={() => ctx.go({ name: 'home' })}>В каталог</button>
+              ) : (
+                <button className="btn-ghost" onClick={() => { setPriceF(null); setDurF(null); setCat('все'); }}>Сбросить фильтры</button>
+              )}
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px 6px' }}>
               {list.map((i) => <IdeaTile key={i.id} idea={i} onClick={() => ctx.go({ name: 'idea', id: i.id })} />)}
             </div>
           )}
         </div>
         <div style={{ height: 40 }} />
       </div>
+      {filtersOpen && (
+        <IdeaFiltersSheet
+          price={priceF} dur={durF} count={list.length}
+          onPrice={setPriceF} onDur={setDurF}
+          onReset={() => { setPriceF(null); setDurF(null); }}
+          onClose={() => setFiltersOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -778,7 +898,7 @@ export function Routes({ ctx }: { ctx: AppCtx }) {
         <div style={{ ...px, marginTop: 30 }}>
           <h1 className="h1" style={{ margin: 0 }}>Все маршруты</h1>
         </div>
-        <div className="row-scroll" style={{ ...px, marginTop: 19 }}>
+        <div className="row-scroll" style={{ ...px, marginTop: 10 }}>
           <FiltersButton onClick={() => ctx.toast('Тонкие фильтры появятся в боевой версии')} />
           <button className={`chip ${district === 'Все' ? 'active' : ''}`} onClick={() => setDistrict('Все')}>Все</button>
           {DISTRICTS.map((d) => (

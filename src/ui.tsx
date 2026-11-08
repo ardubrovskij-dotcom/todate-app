@@ -135,17 +135,17 @@ export function Silhouette({ shape, color = 'rgba(255,255,255,0.20)' }: { shape:
 /* Символ и цвет силуэта на плитке категории (из макета) */
 export const tileShape: Record<Category, string> = { 'еда': 'fork', 'отдых': 'rays', 'релакс': 'flower', 'дома': 'sofa' };
 export const tileShapeColor: Record<Category, string> = {
-  'еда': '#4E1016',
-  'отдых': 'rgba(206,184,54,0.55)',
-  'релакс': 'rgba(255,255,255,0.30)',
-  'дома': 'rgba(255,255,255,0.38)',
+  'еда': 'var(--pink-soft)',
+  'отдых': 'var(--yellow)',
+  'релакс': 'rgba(255,255,255,0.25)',
+  'дома': 'rgba(255,255,255,0.20)',
 };
-/* Цвет абстрактных пятен на картах колоды */
+/* Цвет абстрактных пятен на картах колоды (из макета) */
 export const cardShapeColor: Record<Category, string> = {
   'еда': 'var(--pink-shape)',
-  'отдых': 'rgba(238,218,100,0.85)',
-  'релакс': 'rgba(255,255,255,0.25)',
-  'дома': 'rgba(255,255,255,0.30)',
+  'отдых': 'rgba(240,222,110,0.9)',
+  'релакс': 'rgba(255,255,255,0.22)',
+  'дома': 'rgba(255,255,255,0.22)',
 };
 
 export const catClass = (c: Category) => `cat-${c}`;

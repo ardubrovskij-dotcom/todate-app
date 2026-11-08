@@ -24,10 +24,11 @@
   --divider: #E1E1E1;
   --handle: #D6D6D6;
   --soft: #FAFAFA;
-  --pink: #FCACE5; --pink-shape: #F493D8; --pink-soft: #FFBAEB; --pink-back: #F8D0EE;
+  --pink: #FCACE5; --pink-shape: #EF80CF; --pink-soft: #FFBAEB; --pink-back: #F8D0EE;
   --yellow: #FDEC92; --yellow-soft: #FCEFA6;
-  --lav: #929ADF; --lav-soft: #9DA4E2;
-  --sky: #81ABE8; --sky-soft: #96B9EB;
+  --lav: #929ADF; --lav-deep: #7E86D1;
+  --sky: #81ABE8;
+  --handle-figma: #D9D9D9;
   --card-ink: #300809;
   --ok: #AFDA98;
   --neutral: #B5B6B7;
@@ -93,16 +94,16 @@ body {
 }
 .sheet-handle {
   width: 54px; height: 4px; border-radius: 2px;
-  background: var(--handle);
-  margin: 0 auto 14px;
+  background: var(--handle-figma);
+  margin: 0 auto 30px;
   position: relative;
-  top: -13px;
+  top: -9px;
 }
 
 .chip {
   height: 34px; padding: 0 15px; border-radius: 999px;
   border: 1px solid var(--stroke); background: var(--surface);
-  font-size: 12px; font-weight: 500; color: var(--text);
+  font-size: 13px; font-weight: 500; color: var(--text);
   display: inline-flex; align-items: center; white-space: nowrap;
   cursor: pointer; transition: background .15s ease, color .15s ease, border-color .15s ease;
 }
@@ -112,7 +113,7 @@ body {
 .param {
   height: 36px; padding: 0 15px; border-radius: 999px;
   border: 1px solid var(--stroke); background: var(--surface);
-  font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; white-space: nowrap;
+  font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; white-space: nowrap;
 }
 
 .btn-primary {
@@ -158,9 +159,13 @@ body {
 /* Круглая иконка-кнопка в ряду чипов (фильтры) */
 .chip-icon {
   width: 34px; height: 34px; border-radius: 50%; flex: none;
-  border: 1px solid var(--stroke); background: var(--surface);
+  border: none; background: var(--soft);
   display: inline-flex; align-items: center; justify-content: center;
-  color: var(--icon); cursor: pointer;
+  color: var(--icon); cursor: pointer; position: relative;
+}
+.chip-icon .dot {
+  position: absolute; top: 6px; right: 6px; width: 7px; height: 7px;
+  border-radius: 50%; background: var(--primary); border: 1.5px solid var(--surface);
 }
 .chip-icon svg { width: 16px; height: 16px; }
 
@@ -190,7 +195,7 @@ body {
 .tile {
   border-radius: var(--r-tile);
   position: relative; overflow: hidden; cursor: pointer;
-  aspect-ratio: 162.5 / 200;
+  aspect-ratio: 162 / 200;
   transition: transform .15s ease;
   text-align: left; border: none; padding: 0; width: 100%;
 }
@@ -200,8 +205,7 @@ body {
   font-size: 13px; line-height: 17px; text-align: center; color: var(--text);
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
-/* На лавандовой и голубой плитках текст белый (из макета) */
-.cat-релакс .tile-label, .cat-дома .tile-label { color: #fff; }
+/* На плитках текст тёмный на всех категориях (из макета) */
 .tag {
   position: absolute; top: 12px; left: 12px; height: 24px; padding: 0 12px;
   border-radius: 12px; background: #fff; font-size: 12px; font-weight: 600;
@@ -209,24 +213,25 @@ body {
 }
 .tile-photo { aspect-ratio: 252 / 275; border-radius: 30px; }
 
-.cat-дома { background: linear-gradient(180deg, var(--sky) 0%, var(--sky-soft) 100%); }
-.cat-еда { background: linear-gradient(180deg, var(--pink) 0%, var(--pink-soft) 100%); }
-.cat-отдых { background: linear-gradient(180deg, var(--yellow) 0%, var(--yellow-soft) 100%); }
-.cat-релакс { background: linear-gradient(180deg, var(--lav) 0%, var(--lav-soft) 100%); }
+/* Плитки категорий — плоская заливка (из макета) */
+.cat-дома { background: var(--sky); }
+.cat-еда { background: var(--pink); }
+.cat-отдых { background: var(--yellow-soft); }
+.cat-релакс { background: var(--lav); }
 
 /* Колода */
 .deck-card {
   background: var(--pink);
-  border-radius: 24px;
+  border-radius: 21px;
   box-shadow: 0 10px 30px rgba(48, 8, 9, 0.12);
   color: var(--card-ink);
   position: relative; overflow: hidden;
 }
-/* Задние карты колоды — в цвете своей категории (важен порядок: после .deck-card) */
-.deck-card.cat-дома { background: linear-gradient(180deg, var(--sky) 0%, var(--sky-soft) 100%); }
-.deck-card.cat-еда { background: linear-gradient(180deg, var(--pink) 0%, var(--pink-soft) 100%); }
-.deck-card.cat-отдых { background: linear-gradient(180deg, var(--yellow) 0%, var(--yellow-soft) 100%); }
-.deck-card.cat-релакс { background: linear-gradient(180deg, var(--lav) 0%, var(--lav-soft) 100%); }
+/* Карты колоды — плоские приглушённые цвета (из макета) */
+.deck-card.cat-дома { background: var(--primary); }
+.deck-card.cat-еда { background: var(--pink); }
+.deck-card.cat-отдых { background: var(--yellow); }
+.deck-card.cat-релакс { background: var(--lav-deep); }
 
 /* Плашки списков */
 .plate {
