@@ -111,7 +111,8 @@ body {
 
 .circle-btn {
   width: 50px; height: 50px; border-radius: 50%;
-  background: var(--surface); border: 1px solid var(--divider);
+  background: var(--surface); border: none;
+  box-shadow: 0 2px 10px rgba(20, 30, 60, 0.08);
   display: inline-flex; align-items: center; justify-content: center;
   color: var(--icon); cursor: pointer; flex: none;
   transition: filter .15s ease, transform .12s ease;
@@ -120,12 +121,13 @@ body {
 
 .round-icon-btn {
   width: 50px; height: 50px; border-radius: 50%;
-  background: var(--soft); border: 1px solid var(--divider);
+  background: var(--soft); border: none;
+  box-shadow: 0 2px 10px rgba(20, 30, 60, 0.06);
   display: inline-flex; align-items: center; justify-content: center;
   color: var(--icon); cursor: pointer; flex: none;
-  transition: color .15s ease, border-color .15s ease, transform .12s ease;
+  transition: color .15s ease, transform .12s ease;
 }
-.round-icon-btn.liked { color: #E66BB0; border-color: #F2C4E3; background: #FFF2FA; }
+.round-icon-btn.liked { color: #E66BB0; background: #FFF2FA; }
 .round-icon-btn:active { transform: scale(0.94); }
 
 /* Плитка идеи 162.5×200, категорийный градиент + силуэт */

@@ -48,11 +48,12 @@ export function Silhouette({ shape, color = 'rgba(255,255,255,0.20)' }: { shape:
     case 'sun':
       return (
         <svg style={common} viewBox="0 0 100 120" aria-hidden="true">
-          <circle cx="50" cy="58" r="26" fill="currentColor" />
-          {Array.from({ length: 8 }).map((_, i) => {
-            const a = (i * Math.PI) / 4;
-            return <rect key={i} x="47.5" y="8" width="5" height="18" rx="2.5" fill="currentColor" transform={`rotate(${i * 45} 50 58) translate(0 ${Math.sin(a) * 0})`} />;
-          })}
+          <circle cx="50" cy="58" r="24" fill="currentColor" />
+          {Array.from({ length: 8 }).map((_, i) => (
+            <g key={i} transform={`rotate(${i * 45} 50 58)`}>
+              <rect x="46.5" y="12" width="7" height="18" rx="3.5" fill="currentColor" />
+            </g>
+          ))}
         </svg>
       );
     case 'bottle':
@@ -141,13 +142,21 @@ export function PhotoStub({ hue, className = '', style = {} }: { hue: number; cl
 /* ---------- Стилизованная карта ---------- */
 export function MapStub({ markers = 6, route = false, height = 320 }: { markers?: number; route?: boolean; height?: number }) {
   const pts = [
-    [18, 30], [42, 18], [70, 26], [84, 52], [60, 62], [30, 58], [20, 80], [55, 84],
+    [18, 30], [38, 26], [70, 26], [84, 52], [60, 62], [30, 58], [20, 80], [55, 84],
   ].slice(0, markers);
   return (
-    <div style={{ position: 'relative', height, background: '#EDEEF0', overflow: 'hidden' }} aria-hidden="true">
+    <div style={{ position: 'relative', height, background: '#EBECEF', overflow: 'hidden' }} aria-hidden="true">
       <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} viewBox="0 0 100 100" preserveAspectRatio="none">
-        {/* «река» */}
-        <path d="M-5 62 C 20 52, 35 70, 55 60 S 90 50, 105 58 L 105 105 L -5 105 Z" fill="#DDE3EA" />
+        {/* парки */}
+        <rect x="6" y="6" width="22" height="14" rx="3" fill="#E2E8E2" />
+        <rect x="66" y="8" width="28" height="16" rx="3" fill="#E2E8E2" />
+        <rect x="70" y="70" width="24" height="18" rx="3" fill="#E2E8E2" />
+        {/* «река» Нева */}
+        <path d="M-5 66 C 18 54, 38 74, 58 62 S 88 48, 105 56 L 105 105 L -5 105 Z" fill="#DCE4EC" />
+        <path d="M-5 66 C 18 54, 38 74, 58 62 S 88 48, 105 56" stroke="#CFDAE6" strokeWidth="1.2" fill="none" />
+        {/* каналы */}
+        <path d="M30 0 C 34 30, 26 50, 34 66" stroke="#DCE4EC" strokeWidth="1.6" fill="none" />
+        <path d="M62 0 C 58 28, 66 44, 60 62" stroke="#DCE4EC" strokeWidth="1.4" fill="none" />
         {/* улицы */}
         {[16, 30, 44, 58, 74, 88].map((y) => (
           <line key={y} x1="-5" y1={y} x2="105" y2={y - 8} stroke="#F7F8FA" strokeWidth="1.6" />
@@ -155,11 +164,17 @@ export function MapStub({ markers = 6, route = false, height = 320 }: { markers?
         {[12, 28, 46, 64, 82].map((x) => (
           <line key={x} x1={x} y1="-5" x2={x - 10} y2="105" stroke="#F7F8FA" strokeWidth="1.4" />
         ))}
-        <path d="M0 40 C 30 36, 60 46, 100 34" stroke="#E4E7EB" strokeWidth="4" fill="none" />
+        <path d="M0 40 C 30 36, 60 46, 100 34" stroke="#F2F3F5" strokeWidth="4" fill="none" />
         {route && (
           <path
             d={`M ${pts.map(([x, y]) => `${x} ${y}`).join(' L ')}`}
-            stroke="var(--primary)" strokeWidth="1.6" strokeDasharray="3 2.4" fill="none" strokeLinecap="round"
+            stroke="#FFFFFF" strokeWidth="2.4" fill="none" strokeLinecap="round"
+          />
+        )}
+        {route && (
+          <path
+            d={`M ${pts.map(([x, y]) => `${x} ${y}`).join(' L ')}`}
+            stroke="var(--primary)" strokeWidth="1.4" strokeDasharray="3 2.6" fill="none" strokeLinecap="round"
           />
         )}
       </svg>
@@ -169,7 +184,7 @@ export function MapStub({ markers = 6, route = false, height = 320 }: { markers?
           style={{
             position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%,-50%)',
             width: 40, height: 40, borderRadius: '50%', border: '2px solid #fff',
-            background: `linear-gradient(150deg, hsl(${(i * 57) % 360} 40% 60%), hsl(${(i * 57 + 50) % 360} 35% 35%))`,
+            background: `linear-gradient(150deg, hsl(${(i * 57) % 360} 38% 62%), hsl(${(i * 57 + 50) % 360} 32% 36%))`,
             boxShadow: '0 2px 8px rgba(0,0,0,.18)',
           }}
         />
