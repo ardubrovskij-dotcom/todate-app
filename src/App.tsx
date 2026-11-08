@@ -39,7 +39,7 @@ function routeFromHash(): Route {
   const [name, id] = h.split('/');
   const names: RouteName[] = ['landing', 'auth', 'invite', 'accept', 'home', 'idea', 'hint', 'hint-sent', 'hints', 'favorites', 'routes', 'route', 'events', 'profile', 'account', 'paywall', 'notes'];
   if (names.includes(name as RouteName)) return { name: name as RouteName, id };
-  return { name: 'landing' };
+  return { name: 'home' };
 }
 
 export default function App() {
