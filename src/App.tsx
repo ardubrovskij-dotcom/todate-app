@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Header, BottomNav, type NavKey, IconBell } from './ui';
-import { Landing, Auth, Invite, Accept, Home, IdeaDetail, HintForm, HintSent, MyHints, Favorites, Routes, RouteDetail, Events, Profile, Account, Paywall, Notes } from './screens';
+import { Auth, Invite, Accept, Home, IdeaDetail, HintForm, HintSent, MyHints, Favorites, Routes, RouteDetail, Events, Profile, Account, Paywall, Notes } from './screens';
 
 export type RouteName =
-  | 'landing' | 'auth' | 'invite' | 'accept' | 'home' | 'idea' | 'hint' | 'hint-sent' | 'hints'
+  | 'auth' | 'invite' | 'accept' | 'home' | 'idea' | 'hint' | 'hint-sent' | 'hints'
   | 'favorites' | 'routes' | 'route' | 'events' | 'profile' | 'account' | 'paywall' | 'notes';
 
 export interface Route { name: RouteName; id?: string }
@@ -37,7 +37,7 @@ function load<T>(key: string, fallback: T): T {
 function routeFromHash(): Route {
   const h = window.location.hash.replace(/^#\/?/, '');
   const [name, id] = h.split('/');
-  const names: RouteName[] = ['landing', 'auth', 'invite', 'accept', 'home', 'idea', 'hint', 'hint-sent', 'hints', 'favorites', 'routes', 'route', 'events', 'profile', 'account', 'paywall', 'notes'];
+  const names: RouteName[] = ['auth', 'invite', 'accept', 'home', 'idea', 'hint', 'hint-sent', 'hints', 'favorites', 'routes', 'route', 'events', 'profile', 'account', 'paywall', 'notes'];
   if (names.includes(name as RouteName)) return { name: name as RouteName, id };
   return { name: 'home' };
 }
@@ -106,7 +106,7 @@ export default function App() {
     : route.name === 'favorites' ? 'favorites'
     : 'profile';
 
-  const showNav = route.name !== 'landing' && route.name !== 'auth' && route.name !== 'invite' && route.name !== 'accept';
+  const showNav = route.name !== 'auth' && route.name !== 'invite' && route.name !== 'accept';
   const goNav = (k: NavKey) =>
     k === 'home' ? go({ name: 'home' })
     : k === 'routes' ? go({ name: 'routes' })
@@ -115,9 +115,8 @@ export default function App() {
 
   return (
     <div className="phone">
-      {route.name !== 'landing' && route.name !== 'auth' && route.name !== 'invite' && route.name !== 'accept' && <Header onBell={() => setNotifOpen(true)} onSearch={() => setSearchOpen(true)} />}
+      {route.name !== 'auth' && route.name !== 'invite' && route.name !== 'accept' && <Header onBell={() => setNotifOpen(true)} onSearch={() => setSearchOpen(true)} />}
 
-      {route.name === 'landing' && <Landing ctx={ctx} />}
       {route.name === 'auth' && <Auth ctx={ctx} />}
       {route.name === 'invite' && <Invite ctx={ctx} />}
       {route.name === 'accept' && <Accept ctx={ctx} />}

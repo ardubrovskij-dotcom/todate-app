@@ -234,132 +234,6 @@ export function FiltersButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-/* ================= ЛЕНДИНГ ================= */
-export function Landing({ ctx }: { ctx: AppCtx }) {
-  const [testOpen, setTestOpen] = useState(false);
-  return (
-    <div style={{ paddingBottom: 60 }}>
-      <div style={{ height: 30 }} />
-      <div style={{ textAlign: 'center', marginBottom: 24 }}><Logo /></div>
-      <Deck ideas={IDEAS.slice(0, 4)} onOpen={(id) => ctx.go({ name: 'idea', id })} height={330} />
-      <div className="sheet" style={{ marginTop: -8, minHeight: '50dvh' }}>
-        <div className="sheet-handle" />
-        <div style={px}>
-          <h1 className="h1" style={{ margin: 0 }}>Картотека свиданий для пар Петербурга</h1>
-          <p style={{ fontSize: 13, lineHeight: '17px', color: 'var(--text-2)', margin: '10px 0 0', maxWidth: 330 }}>
-            70+ идей, маршруты по районам и события недели. Главная механика — намёк о свидании: партнёру приходит письмо с идеей и секретным бонусом, о котором не знаете даже вы.
-          </p>
-          <div style={{ display: 'grid', gap: 10, marginTop: 20 }}>
-            <button className="btn-primary" style={{ width: '100%' }} onClick={() => setTestOpen(true)}>Намекнуть о свидании — тест</button>
-            <button className="btn-ghost" style={{ width: '100%' }} onClick={() => ctx.go({ name: ctx.registered ? 'home' : 'auth' })}>
-              {ctx.registered ? 'Открыть картотеку' : 'Создать аккаунт'}
-            </button>
-            {!ctx.registered && (
-              <button style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--text-2)', cursor: 'pointer', textDecoration: 'underline', padding: 4 }} onClick={() => ctx.go({ name: 'home' })}>
-                Сначала посмотреть демо
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div style={{ ...px, marginTop: 34 }}>
-          <h2 className="h2" style={{ margin: '0 0 14px' }}>Подписка</h2>
-          <div style={{ display: 'grid', gap: 10 }}>
-            {PLANS.map((p) => (
-              <button
-                key={p.id}
-                className="plate"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: p.best ? '2px solid var(--primary)' : 'none', cursor: 'pointer', padding: '14px 16px', position: 'relative', background: 'var(--bg)' }}
-                onClick={() => ctx.go({ name: 'paywall' })}
-              >
-                {p.best && <span style={{ position: 'absolute', top: -9, right: 14, background: 'var(--primary)', color: '#fff', fontSize: 10, fontWeight: 600, borderRadius: 999, padding: '2px 10px' }}>выгодно</span>}
-                <span style={{ textAlign: 'left' }}>
-                  <span style={{ display: 'block', fontWeight: 600, fontSize: 14 }}>{p.title}</span>
-                  <span style={{ fontSize: 11, color: 'var(--text-2)' }}>{p.per}</span>
-                </span>
-                <span className="font-head" style={{ fontSize: 24 }}>{p.price}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ ...px, marginTop: 34 }}>
-          <h2 className="h2" style={{ margin: '0 0 14px' }}>Заметки на полях</h2>
-          <div style={{ display: 'grid', gap: 10 }}>
-            {NOTES.slice(0, 2).map((n) => (
-              <div key={n.id} className="plate" style={{ padding: '14px 16px' }}>
-                <div style={{ fontWeight: 600, fontSize: 13 }}>{n.author}</div>
-                <div style={{ fontSize: 13, lineHeight: '17px', margin: '4px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{n.text}</div>
-                <div style={{ fontSize: 11, color: 'var(--primary-dark)' }}>{n.contact}</div>
-              </div>
-            ))}
-          </div>
-          <button className="btn-ghost" style={{ width: '100%', marginTop: 12 }} onClick={() => ctx.go({ name: 'notes' })}>Все заметки и размещение</button>
-        </div>
-
-        <div style={{ ...px, marginTop: 34, textAlign: 'center', fontSize: 11, color: 'var(--text-2)', lineHeight: '16px' }}>
-          Офлайн-версия — печатная игра из 70+ карт.<br />Онлайн — эта картотека. MVP-прототип · СПб
-        </div>
-        <div style={{ height: 30 }} />
-      </div>
-
-      {testOpen && <TestHintModal onClose={() => setTestOpen(false)} ctx={ctx} />}
-    </div>
-  );
-}
-
-function TestHintModal({ onClose, ctx }: { onClose: () => void; ctx: AppCtx }) {
-  const [email, setEmail] = useState('');
-  const [sent, setSent] = useState(false);
-  const idea = IDEAS[0];
-  const valid = /.+@.+\..+/.test(email);
-  return (
-    <div className="modal-backdrop" onClick={onClose} role="dialog" aria-modal="true">
-      <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="sheet-handle" style={{ position: 'static', margin: '6px auto 14px' }} />
-        {!sent ? (
-          <>
-            <div className="h3" style={{ marginBottom: 6 }}>Тест намёка</div>
-            <p style={{ fontSize: 13, lineHeight: '17px', color: 'var(--text-2)', marginTop: 0 }}>
-              Введите e-mail — покажем, как выглядит письмо-намёк. В MVP письмо рисуем прямо здесь, без отправки.
-            </p>
-            <div className="plate" style={{ padding: 16, marginBottom: 14 }}>
-              <MiniCard idea={idea} w={130} h={150} />
-            </div>
-            <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>E-mail получателя</label>
-            <input className="input" placeholder="partner@example.com" value={email} onChange={(e) => setEmail(e.target.value)} inputMode="email" />
-            <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-              <button className="btn-primary" style={{ flex: 1 }} disabled={!valid} onClick={() => setSent(true)}>Показать письмо</button>
-              <button className="btn-ghost" onClick={onClose}>Отмена</button>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="h3" style={{ marginBottom: 10 }}>Так выглядит намёк</div>
-            <div className="plate" style={{ padding: 18 }}>
-              <div style={{ fontSize: 11, color: 'var(--text-2)', marginBottom: 8 }}>Кому: {email} · от сервиса TO DATE</div>
-              <div className="font-head" style={{ fontSize: 22, lineHeight: '23px' }}>Давай {idea.title.charAt(0).toLowerCase() + idea.title.slice(1)}</div>
-              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', margin: '12px 0' }}>
-                <span className="param">{idea.duration}</span>
-                <span className="param">{idea.price}</span>
-                <span className="param">{idea.metro}</span>
-              </div>
-              <p style={{ fontSize: 13, lineHeight: '17px', margin: 0 }}>{idea.description}</p>
-              <div style={{ marginTop: 12, padding: 12, borderRadius: 16, background: 'var(--pink-back)', fontSize: 12, lineHeight: '16px' }}>
-                {idea.secret}
-              </div>
-            </div>
-            <button className="btn-primary" style={{ width: '100%', marginTop: 16 }} onClick={() => { onClose(); ctx.go({ name: 'paywall' }); }}>
-              Хочу такие каждую неделю
-            </button>
-            <button className="btn-ghost" style={{ width: '100%', marginTop: 10 }} onClick={onClose}>Закрыть</button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
 /* ================= РЕГИСТРАЦИЯ ================= */
 export function Auth({ ctx }: { ctx: AppCtx }) {
   const [name, setName] = useState('');
@@ -490,8 +364,8 @@ export function Accept({ ctx }: { ctx: AppCtx }) {
               <button className="btn-primary" style={{ width: '100%', marginTop: 18 }} onClick={() => setStep('form')}>
                 Принять приглашение
               </button>
-              <button style={{ background: 'none', border: 'none', width: '100%', marginTop: 10, fontSize: 12, color: 'var(--text-2)', cursor: 'pointer', textDecoration: 'underline', padding: 4 }} onClick={() => ctx.go({ name: 'landing' })}>
-                Сначала почитать о проекте
+              <button style={{ background: 'none', border: 'none', width: '100%', marginTop: 10, fontSize: 12, color: 'var(--text-2)', cursor: 'pointer', textDecoration: 'underline', padding: 4 }} onClick={() => ctx.go({ name: 'home' })}>
+                Вернуться на главную
               </button>
             </>
           )}
