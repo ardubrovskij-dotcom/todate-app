@@ -59,13 +59,15 @@ export function Silhouette({ shape, color = 'rgba(255,255,255,0.20)' }: { shape:
     case 'bottle':
       return (
         <svg style={common} viewBox="0 0 100 120" aria-hidden="true">
-          <path d="M43 12h14v18l9 14c4 7 6 13 6 20v34c0 7-5 12-12 12H40c-7 0-12-5-12-12V64c0-7 2-13 6-20l9-14V12z" fill="currentColor" />
+          <path d="M0 78c14-16 26-20 38-14 14 7 20-6 34-4 12 2 22 12 28 24v36H0z" fill="currentColor" />
+          <circle cx="72" cy="34" r="14" fill="currentColor" />
         </svg>
       );
     case 'pear':
       return (
         <svg style={common} viewBox="0 0 100 120" aria-hidden="true">
-          <path d="M50 22c3-6 8-9 13-10-1 6-4 10-9 12 14 3 22 18 22 34 0 19-11 34-25 34s-25-15-25-34c0-16 9-33 24-36z" fill="currentColor" />
+          <circle cx="30" cy="44" r="18" fill="currentColor" />
+          <path d="M0 92c18-10 30-26 52-22 20 4 34 14 48 10v40H0z" fill="currentColor" />
         </svg>
       );
     case 'leaves':
@@ -88,7 +90,7 @@ export function Header({ onBell, onSearch }: { onBell: () => void; onSearch: () 
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 20px 0' }}>
       <button className="circle-btn" onClick={onBell} aria-label="Уведомления"><IconBell /></button>
-      <div style={{ paddingTop: 14 }}><Logo /></div>
+      <div style={{ paddingTop: 4 }}><Logo /></div>
       <button className="circle-btn" onClick={onSearch} aria-label="Поиск"><IconSearch /></button>
     </div>
   );
@@ -183,9 +185,9 @@ export function MapStub({ markers = 6, route = false, height = 320 }: { markers?
           key={i}
           style={{
             position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%,-50%)',
-            width: 40, height: 40, borderRadius: '50%', border: '2px solid #fff',
-            background: `linear-gradient(150deg, hsl(${(i * 57) % 360} 38% 62%), hsl(${(i * 57 + 50) % 360} 32% 36%))`,
-            boxShadow: '0 2px 8px rgba(0,0,0,.18)',
+            width: 14, height: 14, borderRadius: '50%', border: '2px solid #fff',
+            background: `hsl(${215 + ((i * 24) % 40)} 30% ${52 + (i % 3) * 8}%)`,
+            boxShadow: '0 1px 4px rgba(0,0,0,.18)',
           }}
         />
       ))}

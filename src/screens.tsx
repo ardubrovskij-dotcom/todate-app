@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { CATEGORIES, DISTRICTS, EVENTS, IDEAS, NOTES, PLANS, ROUTES, type Category, type Idea } from './data';
 import {
   Logo, Silhouette, IdeaTile, PhotoStub, MapStub, IconHeart, IconShare, IconChevron,
-  IconCheck, IconChat, IconUser, IconTheme, IconLang, IconCrown, catClass,
+  IconCheck, IconChat, IconUser, IconTheme, IconLang, IconSliders, catClass,
 } from './ui';
 import type { AppCtx } from './App';
 
@@ -11,27 +11,32 @@ const pxList = { padding: '0 20px' } as const;
 
 /* ================= КОЛОДА =================
    Передняя карта 275×395, радиус 24, поворот −3°.
-   За ней бледные карты, повёрнутые в другую сторону. */
+   За ней две бледные карты, выглядывающие влево и вправо. */
 export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: (id: string) => void; height?: number }) {
   const [idx, setIdx] = useState(0);
   const n = ideas.length;
   const cur = ideas[idx % n];
   const w = Math.round(height * (275 / 395));
   return (
-    <div style={{ position: 'relative', height: height + 46, display: 'flex', justifyContent: 'center' }}>
+    <div style={{ position: 'relative', height, display: 'flex', justifyContent: 'center' }}>
       <div style={{ position: 'relative', width: w, height }}>
-        {[2, 1].map((back) => (
-          <div
-            key={back}
-            className="deck-card"
-            style={{
-              position: 'absolute', inset: 0,
-              transform: `rotate(${back === 1 ? 4 : -6}deg) translateY(${back * 5}px)`,
-              background: 'var(--pink-back)', opacity: 0.8,
-              boxShadow: 'none', zIndex: 3 - back,
-            }}
-          />
-        ))}
+        {n > 1 &&
+          [
+            { rot: -9, x: -20, y: 10, bg: '#D8D6F3' },
+            { rot: 8, x: 20, y: 8, bg: '#D6E4F8' },
+          ].map((b, k) => (
+            <button
+              key={k}
+              className="deck-card"
+              onClick={() => setIdx((idx + 1) % n)}
+              aria-label="Следующая карта"
+              style={{
+                position: 'absolute', inset: 0, border: 'none', padding: 0,
+                transform: `rotate(${b.rot}deg) translate(${b.x}px, ${b.y}px)`,
+                background: b.bg, boxShadow: 'none', zIndex: k + 1, cursor: 'pointer',
+              }}
+            />
+          ))}
         <button
           key={cur.id}
           className="deck-card"
@@ -55,17 +60,28 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
           </div>
         </button>
       </div>
-      {n > 1 && (
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14, zIndex: 4 }}>
-          <button className="circle-btn" style={{ width: 36, height: 36, fontSize: 15 }} onClick={() => setIdx((idx - 1 + n) % n)} aria-label="Предыдущая карта">←</button>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            {ideas.map((i, k) => (
-              <span key={i.id} style={{ width: 6, height: 6, borderRadius: 3, background: k === idx % n ? 'var(--primary)' : 'var(--handle)', transition: 'background .15s ease' }} />
-            ))}
-          </div>
-          <button className="circle-btn" style={{ width: 36, height: 36, fontSize: 15 }} onClick={() => setIdx((idx + 1) % n)} aria-label="Следующая карта">→</button>
+    </div>
+  );
+}
+
+/* Одиночная карта (деталь идеи) — без задних карт, как в макете */
+export function SingleCard({ idea, height = 300 }: { idea: Idea; height?: number }) {
+  const w = Math.round(height * (275 / 395));
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
+      <div className="deck-card" style={{ width: w, height, transform: 'rotate(-3deg)', flex: 'none' }}>
+        <Silhouette shape={idea.shape} color="var(--pink-shape)" />
+        <div style={{ position: 'absolute', top: 22, left: 0, right: 0, textAlign: 'center' }}><Logo dark small /></div>
+        <div
+          className="font-head"
+          style={{
+            position: 'absolute', left: 20, right: 20, top: '50%', transform: 'translateY(-46%)',
+            fontSize: Math.round(w / 10.2), lineHeight: 1.04, color: 'var(--card-ink)', textAlign: 'center',
+          }}
+        >
+          {idea.title}
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -87,6 +103,15 @@ export function MiniCard({ idea, w = 150, h = 190 }: { idea: Idea; w?: number; h
         {idea.title}
       </div>
     </div>
+  );
+}
+
+/* Круглая кнопка-иконка фильтров в ряду чипов */
+export function FiltersButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button className="chip-icon" onClick={onClick} aria-label="Фильтры" title="Фильтры">
+      <IconSliders />
+    </button>
   );
 }
 
@@ -405,17 +430,17 @@ export function Home({ ctx }: { ctx: AppCtx }) {
     <div style={{ paddingBottom: 130 }}>
       <div style={{ height: 92 }} />
       <Deck ideas={IDEAS.slice(0, 5)} onOpen={(id) => ctx.go({ name: 'idea', id })} height={360} />
-      <div className="sheet" style={{ marginTop: -10, minHeight: '55dvh' }}>
+      <div className="sheet" style={{ marginTop: 6, minHeight: '55dvh' }}>
         <div className="sheet-handle" />
         <div style={px}>
           <h1 className="h1" style={{ margin: 0 }}>Все карточки</h1>
         </div>
         <div className="row-scroll" style={{ ...px, marginTop: 19 }}>
+          <FiltersButton onClick={() => ctx.toast('Тонкие фильтры появятся в боевой версии')} />
           <button className={`chip ${cat === 'все' ? 'active' : ''}`} onClick={() => setCat('все')}>Все</button>
           {CATEGORIES.map((c) => (
             <button key={c.key} className={`chip ${cat === c.key ? 'active' : ''}`} onClick={() => setCat(c.key)}>{c.label}</button>
           ))}
-          <button className="chip" onClick={() => ctx.go({ name: 'events' })} style={{ borderStyle: 'dashed' }}>Афиша недели</button>
         </div>
         <div style={{ ...px, marginTop: 15, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
           {list.map((i) => (
@@ -435,8 +460,8 @@ export function IdeaDetail({ ctx, id }: { ctx: AppCtx; id: string }) {
   return (
     <div style={{ paddingBottom: 130 }}>
       <div style={{ height: 92 }} />
-      <Deck ideas={[idea]} height={300} />
-      <div className="sheet" style={{ marginTop: -10 }}>
+      <SingleCard idea={idea} height={300} />
+      <div className="sheet" style={{ marginTop: -30 }}>
         <div className="sheet-handle" />
         <div style={px}>
           <h1 className="h2" style={{ margin: 0 }}>{idea.title}</h1>
@@ -446,8 +471,8 @@ export function IdeaDetail({ ctx, id }: { ctx: AppCtx; id: string }) {
             <span className="param">{idea.metro}</span>
           </div>
           <p style={{ fontSize: 13, lineHeight: '17px', maxWidth: 330, margin: '14px 0 0' }}>{idea.description}</p>
-          <div style={{ display: 'flex', gap: 5, marginTop: 22, alignItems: 'center', justifyContent: 'center' }}>
-            <button className="btn-primary" style={{ width: 220 }} onClick={() => ctx.go({ name: 'hint', id: idea.id })}>
+          <div style={{ display: 'flex', gap: 8, marginTop: 22, alignItems: 'center' }}>
+            <button className="btn-primary" style={{ flex: 1, padding: '0 16px' }} onClick={() => ctx.go({ name: 'hint', id: idea.id })}>
               Намекнуть о свидании
             </button>
             <button
@@ -458,11 +483,6 @@ export function IdeaDetail({ ctx, id }: { ctx: AppCtx; id: string }) {
               <IconHeart filled={liked} />
             </button>
             <button className="round-icon-btn" onClick={() => ctx.toast('Ссылка скопирована')} aria-label="Поделиться"><IconShare /></button>
-          </div>
-          <div style={{ marginTop: 18 }}>
-            <button style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--text-2)', cursor: 'pointer', textDecoration: 'underline', padding: 4 }} onClick={() => ctx.back()}>
-              ← Назад к каталогу
-            </button>
           </div>
         </div>
         <div style={{ height: 40 }} />
@@ -491,7 +511,7 @@ export function HintForm({ ctx, id }: { ctx: AppCtx; id: string }) {
             Партнёру придёт письмо с идеей, локацией, длительностью, метро и примерной стоимостью. А ещё — секретный бонус, который не узнаете даже вы.
           </p>
 
-          <div className="plate" style={{ marginTop: 16, padding: 16 }}>
+          <div className="plate" style={{ marginTop: 16, padding: '16px 16px 0', overflow: 'hidden' }}>
             <div style={{ fontSize: 11, color: 'var(--text-2)' }}>Что отправляем:</div>
             <div className="h3" style={{ margin: '6px 0 0' }}>
               Давай {idea.title.charAt(0).toLowerCase() + idea.title.slice(1)}
@@ -504,30 +524,39 @@ export function HintForm({ ctx, id }: { ctx: AppCtx; id: string }) {
             <div style={{ fontSize: 13, lineHeight: '17px', color: 'var(--text-2)', marginTop: 10 }}>
               Плюс секретный бонус — сюрприз, который делает свидание праздником.
             </div>
-            <div style={{ marginTop: 14 }}>
-              <MiniCard idea={idea} w={170} h={200} />
+            <div style={{ marginTop: 16, marginBottom: -90 }}>
+              <MiniCard idea={idea} w={190} h={220} />
             </div>
           </div>
 
           <div className="plate" style={{ marginTop: 10, display: 'grid', gap: 14, padding: 16 }}>
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-                <label style={{ fontSize: 13 }}>От кого отправляем:</label>
-                <span style={{ fontSize: 10, color: 'var(--text-2)' }}>Взято из профиля</span>
+              <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>От кого отправляем:</label>
+              <div style={{ position: 'relative' }}>
+                <input className="input" style={{ paddingRight: 118 }} value={from} onChange={(e) => setFrom(e.target.value)} placeholder="Ваше имя" />
+                <span style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', fontSize: 10, color: 'var(--text-2)', pointerEvents: 'none' }}>
+                  Взято из профиля
+                </span>
               </div>
-              <input className="input" value={from} onChange={(e) => setFrom(e.target.value)} placeholder="Ваше имя" />
             </div>
             <div>
               <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Кому отправляем:</label>
               <input className="input" placeholder="E-mail партнёра" inputMode="email" value={to} onChange={(e) => setTo(e.target.value)} />
-              <div className="row-scroll" style={{ marginTop: 8 }}>
+              <div style={{ display: 'flex', gap: 14, marginTop: 8, flexWrap: 'wrap' }}>
                 {RECENT_CONTACTS.map((c) => (
-                  <button key={c} className="chip" style={{ height: 28, fontSize: 11 }} onClick={() => setTo(c)}>{c}</button>
+                  <button
+                    key={c}
+                    style={{ background: 'none', border: 'none', padding: 0, fontSize: 11, color: 'var(--text-2)', textDecoration: 'underline', cursor: 'pointer' }}
+                    onClick={() => setTo(c)}
+                  >
+                    {c}
+                  </button>
                 ))}
               </div>
             </div>
-            <label style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 13, cursor: 'pointer' }}>
-              <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--primary)' }} />
+            <label className="check-round" style={{ fontSize: 13 }}>
+              <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
+              <span className="box"><IconCheck /></span>
               Партнёр не против письма
             </label>
           </div>
@@ -555,13 +584,13 @@ export function HintSent({ ctx, id }: { ctx: AppCtx; id: string }) {
           <p style={{ fontSize: 13, lineHeight: '17px', color: 'var(--text-2)', marginTop: 0, maxWidth: 330 }}>
             Письмо уже летит партнёру. Как только намёк услышат — статус в «Моих намёках» изменится на «Услышан».
           </p>
-          <div className="plate" style={{ marginTop: 16, padding: 16 }}>
+          <div className="plate" style={{ marginTop: 16, padding: '16px 16px 0', overflow: 'hidden' }}>
             <div style={{ fontSize: 11, color: 'var(--text-2)', marginBottom: 8 }}>Что отправляем:</div>
             <div className="h3">
               Давай {idea.title.charAt(0).toLowerCase() + idea.title.slice(1)}
             </div>
-            <div style={{ marginTop: 14 }}>
-              <MiniCard idea={idea} w={170} h={200} />
+            <div style={{ marginTop: 16, marginBottom: -90 }}>
+              <MiniCard idea={idea} w={190} h={220} />
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 16 }}>
@@ -632,24 +661,25 @@ export function Favorites({ ctx }: { ctx: AppCtx }) {
   const [cat, setCat] = useState<Category | 'все'>('все');
   const favs = IDEAS.filter((i) => ctx.favorites.includes(i.id));
   const list = cat === 'все' ? favs : favs.filter((i) => i.category === cat);
-  const fan = favs.slice(0, 6);
+  const fan = favs.slice(0, 5);
   return (
     <div style={{ paddingBottom: 130 }}>
       <div style={{ height: 92 }} />
       {fan.length > 0 && (
-        <div style={{ height: 230, position: 'relative', margin: '0 30px' }}>
+        <div style={{ height: 260, position: 'relative', margin: '0 20px' }}>
           {fan.map((idea, k) => {
             const mid = (fan.length - 1) / 2;
-            const rot = (k - mid) * 10;
+            const off = k - mid;
             return (
               <button
                 key={idea.id}
                 className={`deck-card ${catClass(idea.category)}`}
                 onClick={() => ctx.go({ name: 'idea', id: idea.id })}
                 style={{
-                  position: 'absolute', width: 118, height: 172,
-                  left: `calc(50% - 59px + ${(k - mid) * 52}px)`, top: 24 - Math.abs(k - mid) * 6,
-                  transform: `rotate(${rot}deg)`, border: '2px solid rgba(255,255,255,.7)', cursor: 'pointer', zIndex: k,
+                  position: 'absolute', width: 124, height: 182,
+                  left: `calc(50% - 62px + ${off * 64}px)`, top: 26 + Math.abs(off) * 12,
+                  transform: `rotate(${off * 14}deg)`, border: '2px solid rgba(255,255,255,.7)', cursor: 'pointer',
+                  zIndex: 10 - Math.abs(off),
                   boxShadow: '0 6px 18px rgba(48,8,9,0.10)',
                 }}
                 aria-label={idea.title}
@@ -664,12 +694,13 @@ export function Favorites({ ctx }: { ctx: AppCtx }) {
           })}
         </div>
       )}
-      <div className="sheet" style={{ marginTop: fan.length ? 0 : 0, minHeight: '50dvh' }}>
+      <div className="sheet" style={{ marginTop: 0, minHeight: '50dvh' }}>
         <div className="sheet-handle" />
         <div style={px}>
           <h1 className="h1" style={{ margin: 0 }}>Всё избранное</h1>
         </div>
         <div className="row-scroll" style={{ ...px, marginTop: 19 }}>
+          <FiltersButton onClick={() => ctx.toast('Тонкие фильтры появятся в боевой версии')} />
           <button className={`chip ${cat === 'все' ? 'active' : ''}`} onClick={() => setCat('все')}>Все</button>
           {CATEGORIES.map((c) => (
             <button key={c.key} className={`chip ${cat === c.key ? 'active' : ''}`} onClick={() => setCat(c.key)}>{c.label}</button>
@@ -697,17 +728,17 @@ export function Favorites({ ctx }: { ctx: AppCtx }) {
 /* ================= МАРШРУТЫ ================= */
 function RoutePhotoCard({ r, onClick }: { r: (typeof ROUTES)[number]; onClick: () => void }) {
   return (
-    <button style={{ flex: '0 0 252px', border: 'none', background: 'none', padding: 0, textAlign: 'left', cursor: 'pointer' }} onClick={onClick}>
+    <button style={{ flex: '0 0 196px', border: 'none', background: 'none', padding: 0, textAlign: 'left', cursor: 'pointer' }} onClick={onClick}>
       <div style={{ position: 'relative' }}>
-        <PhotoStub hue={r.hue} style={{ width: 252, height: 275, borderRadius: 30 }} />
+        <PhotoStub hue={r.hue} style={{ width: 196, height: 200, borderRadius: 24 }} />
         <div style={{ position: 'absolute', top: 10, left: 10, right: 10, display: 'flex', gap: 5, flexWrap: 'wrap' }}>
           {[...r.tags, r.price].map((t) => (
-            <span key={t} style={{ background: 'rgba(17,17,17,.55)', color: '#fff', fontSize: 12, borderRadius: 999, padding: '4px 10px', backdropFilter: 'blur(4px)', whiteSpace: 'nowrap' }}>{t}</span>
+            <span key={t} className="photo-pill">{t}</span>
           ))}
         </div>
       </div>
-      <div style={{ fontSize: 16, marginTop: 10, lineHeight: '20px' }}>{r.title}</div>
-      <div style={{ fontSize: 13, lineHeight: '16px', color: 'var(--text-2)', marginTop: 4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{r.description}</div>
+      <div style={{ fontSize: 14, fontWeight: 600, marginTop: 10, lineHeight: '18px' }}>{r.title}</div>
+      <div style={{ fontSize: 12, lineHeight: '15px', color: 'var(--text-2)', marginTop: 4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{r.description}</div>
     </button>
   );
 }
@@ -733,6 +764,7 @@ export function Routes({ ctx }: { ctx: AppCtx }) {
           <h1 className="h1" style={{ margin: 0 }}>Все маршруты</h1>
         </div>
         <div className="row-scroll" style={{ ...px, marginTop: 19 }}>
+          <FiltersButton onClick={() => ctx.toast('Тонкие фильтры появятся в боевой версии')} />
           <button className={`chip ${district === 'Все' ? 'active' : ''}`} onClick={() => setDistrict('Все')}>Все</button>
           {DISTRICTS.map((d) => (
             <button key={d} className={`chip ${district === d ? 'active' : ''}`} onClick={() => setDistrict(d)}>{d}</button>
@@ -741,15 +773,17 @@ export function Routes({ ctx }: { ctx: AppCtx }) {
         <div style={pxList}>
           {grouped.map((g) => (
             <div key={g.d} style={{ marginTop: 20 }}>
-              <div style={{ fontSize: 16, color: 'var(--text-2)', marginBottom: 10, padding: '0 10px' }}>{g.d}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, padding: '0 10px' }}>{g.d}</div>
               <div style={{ display: 'grid', gap: 10 }}>
                 {g.items.map((r) => (
                   <button key={r.id} className="plate" style={{ display: 'flex', gap: 14, alignItems: 'center', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 10 }} onClick={() => ctx.go({ name: 'route', id: r.id })}>
-                    <PhotoStub hue={r.hue} style={{ width: 100, height: 100, borderRadius: 20, flex: 'none' }} />
+                    <div style={{ position: 'relative', flex: 'none' }}>
+                      <PhotoStub hue={r.hue} style={{ width: 100, height: 100, borderRadius: 20 }} />
+                      <span className="photo-pill small" style={{ position: 'absolute', top: 8, left: 8 }}>{r.district}</span>
+                    </div>
                     <div style={{ minWidth: 0 }}>
-                      <span className="tag" style={{ position: 'static' }}>{r.district}</span>
-                      <div style={{ fontSize: 13, lineHeight: '16px', fontWeight: 500, marginTop: 6 }}>{r.title}</div>
-                      <div style={{ fontSize: 10, color: 'var(--text-2)', marginTop: 4 }}>{r.duration} · {r.price}</div>
+                      <div style={{ fontSize: 13, lineHeight: '16px', fontWeight: 600 }}>{r.title}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 4, lineHeight: '14px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{r.description}</div>
                     </div>
                   </button>
                 ))}
@@ -792,15 +826,10 @@ export function RouteDetail({ ctx, id }: { ctx: AppCtx; id: string }) {
           ))}
         </div>
         <div style={px}>
-          <div style={{ display: 'flex', gap: 5, marginTop: 20, alignItems: 'center', justifyContent: 'center' }}>
-            <button className="btn-primary" style={{ width: 220 }} onClick={() => ctx.go({ name: 'hint', id: IDEAS[0].id })}>Намекнуть о свидании</button>
+          <div style={{ display: 'flex', gap: 8, marginTop: 20, alignItems: 'center' }}>
+            <button className="btn-primary" style={{ flex: 1, padding: '0 16px' }} onClick={() => ctx.go({ name: 'hint', id: IDEAS[0].id })}>Намекнуть о свидании</button>
             <button className={`round-icon-btn ${ctx.favorites.includes(route.id) ? 'liked' : ''}`} onClick={() => ctx.toggleFavorite(route.id)} aria-label="В избранное"><IconHeart filled={ctx.favorites.includes(route.id)} /></button>
             <button className="round-icon-btn" onClick={() => ctx.toast('Ссылка скопирована')} aria-label="Поделиться"><IconShare /></button>
-          </div>
-          <div style={{ marginTop: 18 }}>
-            <button style={{ background: 'none', border: 'none', fontSize: 12, color: 'var(--text-2)', cursor: 'pointer', textDecoration: 'underline', padding: 4 }} onClick={() => ctx.back()}>
-              ← Назад к маршрутам
-            </button>
           </div>
         </div>
         <div style={{ height: 40 }} />
@@ -811,9 +840,7 @@ export function RouteDetail({ ctx, id }: { ctx: AppCtx; id: string }) {
 
 /* ================= СОБЫТИЯ ================= */
 export function Events({ ctx }: { ctx: AppCtx }) {
-  const [cat, setCat] = useState<Category | 'все'>('все');
   const favs = EVENTS.slice(0, 3);
-  const list = cat === 'все' ? EVENTS : EVENTS.filter((e) => e.category === cat);
   return (
     <div style={{ paddingBottom: 130 }}>
       <div style={{ height: 84 }} />
@@ -828,37 +855,33 @@ export function Events({ ctx }: { ctx: AppCtx }) {
               <div style={{ position: 'relative' }}>
                 <PhotoStub hue={e.hue} style={{ width: 252, height: 275, borderRadius: 30 }} />
                 <div style={{ position: 'absolute', top: 10, left: 10, right: 10, display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                  <span style={{ background: 'rgba(17,17,17,.55)', color: '#fff', fontSize: 12, borderRadius: 999, padding: '4px 10px', backdropFilter: 'blur(4px)' }}>{e.date}</span>
-                  <span style={{ background: 'rgba(17,17,17,.55)', color: '#fff', fontSize: 12, borderRadius: 999, padding: '4px 10px', backdropFilter: 'blur(4px)' }}>{e.price}</span>
+                  <span className="photo-pill">{e.date}</span>
+                  <span className="photo-pill">{e.price}</span>
                 </div>
               </div>
-              <div style={{ fontSize: 16, marginTop: 10, lineHeight: '20px' }}>{e.title}</div>
-              <div style={{ fontSize: 13, lineHeight: '16px', color: 'var(--text-2)', marginTop: 4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{e.description}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, marginTop: 10, lineHeight: '18px' }}>{e.title}</div>
+              <div style={{ fontSize: 12, lineHeight: '15px', color: 'var(--text-2)', marginTop: 4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{e.description}</div>
             </button>
           ))}
         </div>
 
-        <div style={{ ...px, marginTop: 30 }}>
+        <div style={{ ...px, marginTop: 30, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 className="h1" style={{ margin: 0 }}>Все события</h1>
-          <p style={{ fontSize: 13, color: 'var(--text-2)', margin: '6px 0 0' }}>Афиша обновляется каждый понедельник.</p>
-        </div>
-        <div className="row-scroll" style={{ ...px, marginTop: 19 }}>
-          <button className={`chip ${cat === 'все' ? 'active' : ''}`} onClick={() => setCat('все')}>Все</button>
-          {CATEGORIES.map((c) => (
-            <button key={c.key} className={`chip ${cat === c.key ? 'active' : ''}`} onClick={() => setCat(c.key)}>{c.label}</button>
-          ))}
+          <FiltersButton onClick={() => ctx.toast('Тонкие фильтры появятся в боевой версии')} />
         </div>
         <div style={{ ...pxList, marginTop: 15, display: 'grid', gap: 10 }}>
-          {list.map((e) => (
+          {EVENTS.map((e) => (
             <button key={e.id} className="plate" style={{ display: 'flex', gap: 14, alignItems: 'center', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 10 }} onClick={() => ctx.toast('В MVP билеты не продаём — скоро')}>
-              <PhotoStub hue={e.hue} style={{ width: 100, height: 100, borderRadius: 20, flex: 'none' }} />
-              <div style={{ minWidth: 0 }}>
-                <div style={{ display: 'flex', gap: 5, marginBottom: 6 }}>
-                  <span className="tag" style={{ position: 'static' }}>{e.date}</span>
-                  <span className="tag" style={{ position: 'static' }}>{e.price}</span>
+              <div style={{ position: 'relative', flex: 'none' }}>
+                <PhotoStub hue={e.hue} style={{ width: 100, height: 100, borderRadius: 20 }} />
+                <div style={{ position: 'absolute', top: 6, left: 6, right: 6, display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                  <span className="photo-pill small">{e.date}</span>
+                  <span className="photo-pill small">{e.price}</span>
                 </div>
-                <div style={{ fontSize: 13, lineHeight: '16px', fontWeight: 500 }}>{e.title}</div>
-                <div style={{ fontSize: 10, color: 'var(--text-2)', marginTop: 4 }}>{e.place}</div>
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13, lineHeight: '16px', fontWeight: 600 }}>{e.title}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 4, lineHeight: '14px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{e.description}</div>
               </div>
             </button>
           ))}
@@ -887,18 +910,12 @@ export function Profile({ ctx }: { ctx: AppCtx }) {
             <span style={{ width: 88, height: 88, fontSize: 34 }}>{ctx.profile.name.charAt(0).toUpperCase()}</span>
           </div>
           <div className="h1" style={{ marginTop: 12 }}>{ctx.profile.name}</div>
-          <div style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 4 }}>
-            {ctx.subscribed ? `Подписка активна · осталось ${ctx.subscribed} дн.` : 'Подписка не оформлена'}
-            {ctx.profile.partner ? ` · пара: ${ctx.profile.partner}` : ''}
-          </div>
         </div>
         <div style={{ ...pxList, marginTop: 24, display: 'grid', gap: 18 }}>
           <div className="plate" style={{ padding: 0, overflow: 'hidden' }}>
             {row(<IconHeart />, 'Избранное', () => ctx.go({ name: 'favorites' }))}
             <div style={{ height: 1, background: 'var(--divider)', margin: '0 16px 0 60px' }} />
             {row(<IconChat />, 'Мои намёки', () => ctx.go({ name: 'hints' }))}
-            <div style={{ height: 1, background: 'var(--divider)', margin: '0 16px 0 60px' }} />
-            {row(<IconCrown />, ctx.subscribed ? 'Подписка' : 'Оформить подписку', () => ctx.go({ name: 'paywall' }))}
           </div>
           <div className="plate" style={{ padding: 0, overflow: 'hidden' }}>
             {row(<IconUser />, 'Аккаунт', () => ctx.go({ name: 'account' }))}
@@ -907,7 +924,6 @@ export function Profile({ ctx }: { ctx: AppCtx }) {
             <div style={{ height: 1, background: 'var(--divider)', margin: '0 16px 0 60px' }} />
             {row(<IconLang />, 'Язык', () => ctx.toast('Пока только русский'))}
           </div>
-          <button className="btn-ghost" onClick={() => ctx.go({ name: 'landing' })}>О проекте и тарифы</button>
         </div>
         <div style={{ height: 40 }} />
       </div>
@@ -943,6 +959,17 @@ export function Account({ ctx }: { ctx: AppCtx }) {
                 </div>
                 <button className="btn-ghost" style={{ height: 40, flex: 'none' }} onClick={() => ctx.go({ name: 'invite' })}>
                   {ctx.profile.partner ? 'Изменить' : 'Пригласить'}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label style={{ fontSize: 13, display: 'block', marginBottom: 6 }}>Подписка</label>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div style={{ flex: 1, fontSize: 13, color: ctx.subscribed ? 'var(--text)' : 'var(--text-2)', minHeight: 40, display: 'flex', alignItems: 'center' }}>
+                  {ctx.subscribed ? `Активна · осталось ${ctx.subscribed} дн.` : 'Не оформлена'}
+                </div>
+                <button className="btn-ghost" style={{ height: 40, flex: 'none' }} onClick={() => ctx.go({ name: 'paywall' })}>
+                  {ctx.subscribed ? 'Продлить' : 'Оформить'}
                 </button>
               </div>
             </div>
