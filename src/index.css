@@ -215,6 +215,11 @@ body {
   color: var(--card-ink);
   position: relative; overflow: hidden;
 }
+/* Задние карты колоды — в цвете своей категории (важен порядок: после .deck-card) */
+.deck-card.cat-дома { background: linear-gradient(180deg, var(--sky) 0%, var(--sky-soft) 100%); }
+.deck-card.cat-еда { background: linear-gradient(180deg, var(--pink) 0%, var(--pink-soft) 100%); }
+.deck-card.cat-отдых { background: linear-gradient(180deg, var(--yellow) 0%, var(--yellow-soft) 100%); }
+.deck-card.cat-релакс { background: linear-gradient(180deg, var(--lav) 0%, var(--lav-soft) 100%); }
 
 /* Плашки списков */
 .plate {

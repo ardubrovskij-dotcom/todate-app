@@ -33,7 +33,8 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
   const startX = React.useRef<number | null>(null);
   const swiped = React.useRef(false);
   const n = ideas.length;
-  const cur = ideas[idx % n];
+  const done = idx >= n;
+  const cur = done ? null : ideas[idx];
   const w = Math.round(height * (275 / 395));
   const p = Math.min(Math.abs(drag) / 120, 1);
 
@@ -41,11 +42,17 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
     setLeaving(dir);
     setDragging(false);
     window.setTimeout(() => {
-      setIdx((i) => (i + (dir === 1 ? 1 : n - 1)) % n);
+      setIdx((i) => Math.min(i + 1, n));
       setLeaving(0);
       setDrag(0);
     }, 240);
   };
+
+  /* Позы задних карт: ближняя (1) и дальняя (2) */
+  const BACK_POSES = [
+    { rot: 8, x: 20, y: 8, scale: 0.94 },
+    { rot: -9, x: -20, y: 12, scale: 0.9 },
+  ];
 
   const frontTransform = (): React.CSSProperties => {
     if (leaving !== 0) {
@@ -65,7 +72,7 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
     <div
       style={{ position: 'relative', height, display: 'flex', justifyContent: 'center', touchAction: 'pan-y' }}
       onPointerDown={(e) => {
-        if (leaving !== 0) return;
+        if (leaving !== 0 || done) return;
         startX.current = e.clientX;
         swiped.current = false;
         setDragging(true);
@@ -88,52 +95,81 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
       onPointerCancel={() => { startX.current = null; setDragging(false); setDrag(0); }}
     >
       <div style={{ position: 'relative', width: w, height }}>
-        {n > 1 &&
-          [
-            { rot: -9, x: -20, y: 10, bg: '#D8D6F3' },
-            { rot: 8, x: 20, y: 8, bg: '#D6E4F8' },
-          ].map((b, k) => {
+        {/* Задние карты — следующие из колоды; ближняя растёт при свайпе */}
+        {!done &&
+          [ideas[idx + 2], ideas[idx + 1]].map((back, k) => {
+            if (!back) return null;
             const near = k === 1;
-            const q = near ? 1 - p : 1;
+            const pose = BACK_POSES[near ? 0 : 1];
+            const grow = near ? p : p * 0.4;
+            const rot = pose.rot + (-3 - pose.rot) * grow;
+            const scale = pose.scale + (1 - pose.scale) * grow;
             return (
               <button
-                key={k}
-                className="deck-card"
-                onClick={() => { if (leaving === 0) finishLeave(1); }}
-                aria-label="Следующая карта"
+                key={back.id}
+                className={`deck-card ${catClass(back.category)}`}
+                onClick={() => { if (leaving === 0 && near) finishLeave(1); }}
+                aria-label={near ? 'Следующая карта' : undefined}
+                tabIndex={near ? 0 : -1}
                 style={{
                   position: 'absolute', inset: 0, border: 'none', padding: 0,
-                  transform: `rotate(${b.rot * q}deg) translate(${b.x * q}px, ${b.y * q}px) scale(${near ? 0.97 + 0.03 * p : 0.97})`,
+                  transform: `rotate(${rot}deg) translate(${pose.x * (1 - grow)}px, ${pose.y * (1 - grow)}px) scale(${scale})`,
                   transition: dragging ? 'none' : 'transform .3s ease',
-                  background: b.bg, boxShadow: 'none', zIndex: k + 1, cursor: 'pointer',
+                  animation: 'deckIn .25s ease-out',
+                  boxShadow: 'none', zIndex: near ? 2 : 1, cursor: near ? 'pointer' : 'default',
                 }}
-              />
+              >
+                <Silhouette shape={back.shape} />
+              </button>
             );
           })}
-        <button
-          key={cur.id}
-          className="deck-card"
-          onClick={() => { if (swiped.current) { swiped.current = false; return; } onOpen?.(cur.id); }}
-          style={{
-            position: 'absolute', inset: 0, border: 'none', padding: 0, zIndex: 3,
-            cursor: onOpen ? (dragging ? 'grabbing' : 'grab') : 'default', display: 'block',
-            animation: deckAnim === 'flip' ? 'flipIn .3s ease-out' : 'deckIn .22s ease-out',
-            ...frontTransform(),
-          }}
-          aria-label={cur.title}
-        >
-          <Silhouette shape={cur.shape} color="var(--pink-shape)" />
-          <div style={{ position: 'absolute', top: 22, left: 0, right: 0, textAlign: 'center' }}><Logo dark small /></div>
-          <div
-            className="font-head"
+        {/* Передняя карта */}
+        {!done && cur && (
+          <button
+            key={cur.id}
+            className="deck-card"
+            onClick={() => { if (swiped.current) { swiped.current = false; return; } onOpen?.(cur.id); }}
             style={{
-              position: 'absolute', left: 22, right: 22, top: '50%', transform: 'translateY(-46%)',
-              fontSize: Math.round(w / 10.2), lineHeight: 1.04, color: 'var(--card-ink)', textAlign: 'center',
+              position: 'absolute', inset: 0, border: 'none', padding: 0, zIndex: 3,
+              cursor: onOpen ? (dragging ? 'grabbing' : 'grab') : 'default', display: 'block',
+              animation: deckAnim === 'flip' ? 'flipIn .3s ease-out' : 'deckIn .22s ease-out',
+              ...frontTransform(),
+            }}
+            aria-label={cur.title}
+          >
+            <Silhouette shape={cur.shape} color="var(--pink-shape)" />
+            <div style={{ position: 'absolute', top: 22, left: 0, right: 0, textAlign: 'center' }}><Logo dark small /></div>
+            <div
+              className="font-head"
+              style={{
+                position: 'absolute', left: 22, right: 22, top: '50%', transform: 'translateY(-46%)',
+                fontSize: Math.round(w / 10.2), lineHeight: 1.04, color: 'var(--card-ink)', textAlign: 'center',
+              }}
+            >
+              {cur.title}
+            </div>
+          </button>
+        )}
+        {/* Колода кончилась: заглушка с кнопкой «Смотреть заново» */}
+        {done && (
+          <div
+            className="deck-card"
+            style={{
+              position: 'absolute', inset: 0, zIndex: 3, background: 'var(--surface)',
+              transform: 'rotate(-3deg)', display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center', padding: 30, textAlign: 'center',
+              animation: 'deckIn .25s ease-out',
             }}
           >
-            {cur.title}
+            <div className="font-head" style={{ fontSize: 26, lineHeight: '26px' }}>Карты на сегодня закончились</div>
+            <p style={{ fontSize: 13, lineHeight: '17px', color: 'var(--text-2)', margin: '10px 0 18px' }}>
+              Избранные карточки обновляются каждый день.
+            </p>
+            <button className="btn-primary" style={{ height: 46 }} onClick={() => setIdx(0)}>
+              Смотреть заново
+            </button>
           </div>
-        </button>
+        )}
       </div>
     </div>
   );
@@ -505,7 +541,7 @@ export function Home({ ctx }: { ctx: AppCtx }) {
     <div style={{ paddingBottom: 130 }}>
       <div className="deck-stick">
         <div style={{ height: 92 }} />
-        <Deck ideas={IDEAS.slice(0, 5)} onOpen={(id) => ctx.go({ name: 'idea', id })} height={360} />
+        <Deck ideas={IDEAS.slice(0, 4)} onOpen={(id) => ctx.go({ name: 'idea', id })} height={360} />
       </div>
       <div className="sheet" style={{ marginTop: -46, minHeight: '55dvh' }}>
         <div className="sheet-handle" />
