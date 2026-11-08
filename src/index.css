@@ -84,10 +84,6 @@ body {
   from { transform: rotate(-3deg) scale(0.92); opacity: 0.4; }
   to { transform: rotate(-3deg) scale(1); opacity: 1; }
 }
-@keyframes flipIn {
-  from { transform: perspective(900px) rotateY(60deg); opacity: 0.2; }
-  to { transform: perspective(900px) rotateY(0); opacity: 1; }
-}
 
 .sheet {
   background: var(--surface);

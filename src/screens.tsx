@@ -45,7 +45,7 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
       setIdx((i) => Math.min(i + 1, n));
       setLeaving(0);
       setDrag(0);
-    }, 240);
+    }, 320);
   };
 
   /* Позы задних карт: ближняя (1) и дальняя (2) */
@@ -57,14 +57,14 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
   const frontTransform = (): React.CSSProperties => {
     if (leaving !== 0) {
       if (deckAnim === 'flip')
-        return { transform: `perspective(900px) rotateY(${leaving * -80}deg)`, opacity: 0, transition: 'transform .24s ease-in, opacity .24s ease-in' };
+        return { transform: `perspective(900px) rotateY(${leaving * -80}deg)`, opacity: 0, transition: 'transform .34s cubic-bezier(.3,.7,.4,1), opacity .34s ease' };
       if (deckAnim === 'deal')
-        return { transform: `translateY(${height * 0.6}px) rotate(${leaving * -10}deg)`, opacity: 0, transition: 'transform .24s ease-in, opacity .24s ease-in' };
-      return { transform: `translateX(${leaving * (w + 240)}px) rotate(${leaving * 22}deg)`, opacity: 0.9, transition: 'transform .26s ease-in, opacity .26s ease-in' };
+        return { transform: `translateY(${height * 0.6}px) rotate(${leaving * -10}deg)`, opacity: 0, transition: 'transform .34s cubic-bezier(.3,.7,.4,1), opacity .34s ease' };
+      return { transform: `translateX(${leaving * (w + 240)}px) rotate(${leaving * 22}deg)`, opacity: 0.9, transition: 'transform .36s cubic-bezier(.3,.7,.4,1), opacity .36s ease' };
     }
     return {
       transform: `translateX(${drag}px) rotate(${-3 + drag * 0.05}deg)`,
-      transition: dragging ? 'none' : 'transform .32s cubic-bezier(.2,.8,.3,1.15)',
+      transition: dragging ? 'none' : 'transform .42s cubic-bezier(.2,.8,.3,1.08)',
     };
   };
 
@@ -94,7 +94,7 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
       }}
       onPointerCancel={() => { startX.current = null; setDragging(false); setDrag(0); }}
     >
-      <div style={{ position: 'relative', width: w, height }}>
+      <div key={done ? 'stub' : 'deck'} style={{ position: 'relative', width: w, height, animation: 'deckIn .35s cubic-bezier(.25,.8,.3,1)' }}>
         {/* Задние карты — следующие из колоды; ближняя растёт при свайпе */}
         {!done &&
           [ideas[idx + 2], ideas[idx + 1]].map((back, k) => {
@@ -114,13 +114,22 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
                 style={{
                   position: 'absolute', inset: 0, border: 'none', padding: 0,
                   transform: `rotate(${rot}deg) translate(${pose.x * (1 - grow)}px, ${pose.y * (1 - grow)}px) scale(${scale})`,
-                  transition: dragging ? 'none' : 'transform .3s ease',
-                  animation: 'deckIn .25s ease-out',
+                  transition: dragging ? 'none' : 'transform .38s cubic-bezier(.25,.8,.3,1), opacity .3s ease',
                   opacity: near ? 0.85 : 0.7,
                   boxShadow: 'none', zIndex: near ? 2 : 1, cursor: near ? 'pointer' : 'default',
                 }}
               >
                 <Silhouette shape={back.shape} />
+                <div style={{ position: 'absolute', top: 22, left: 0, right: 0, textAlign: 'center' }}><Logo dark small /></div>
+                <div
+                  className="font-head"
+                  style={{
+                    position: 'absolute', left: 22, right: 22, top: '50%', transform: 'translateY(-46%)',
+                    fontSize: Math.round(w / 10.2), lineHeight: 1.04, color: 'var(--card-ink)', textAlign: 'center',
+                  }}
+                >
+                  {back.title}
+                </div>
               </button>
             );
           })}
@@ -133,7 +142,6 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
             style={{
               position: 'absolute', inset: 0, border: 'none', padding: 0, zIndex: 3,
               cursor: onOpen ? (dragging ? 'grabbing' : 'grab') : 'default', display: 'block',
-              animation: deckAnim === 'flip' ? 'flipIn .3s ease-out' : 'deckIn .22s ease-out',
               ...frontTransform(),
             }}
             aria-label={cur.title}
@@ -159,7 +167,6 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
               position: 'absolute', inset: 0, zIndex: 3, background: 'var(--surface)',
               transform: 'rotate(-3deg)', display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center', padding: 30, textAlign: 'center',
-              animation: 'deckIn .25s ease-out',
             }}
           >
             <div className="font-head" style={{ fontSize: 26, lineHeight: '26px' }}>Карты на сегодня закончились</div>
