@@ -116,6 +116,7 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
                   transform: `rotate(${rot}deg) translate(${pose.x * (1 - grow)}px, ${pose.y * (1 - grow)}px) scale(${scale})`,
                   transition: dragging ? 'none' : 'transform .3s ease',
                   animation: 'deckIn .25s ease-out',
+                  opacity: near ? 0.85 : 0.7,
                   boxShadow: 'none', zIndex: near ? 2 : 1, cursor: near ? 'pointer' : 'default',
                 }}
               >
@@ -127,7 +128,7 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
         {!done && cur && (
           <button
             key={cur.id}
-            className="deck-card"
+            className={`deck-card ${catClass(cur.category)}`}
             onClick={() => { if (swiped.current) { swiped.current = false; return; } onOpen?.(cur.id); }}
             style={{
               position: 'absolute', inset: 0, border: 'none', padding: 0, zIndex: 3,
@@ -137,7 +138,7 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
             }}
             aria-label={cur.title}
           >
-            <Silhouette shape={cur.shape} color="var(--pink-shape)" />
+            <Silhouette shape={cur.shape} />
             <div style={{ position: 'absolute', top: 22, left: 0, right: 0, textAlign: 'center' }}><Logo dark small /></div>
             <div
               className="font-head"
@@ -180,8 +181,8 @@ export function SingleCard({ idea, height = 300 }: { idea: Idea; height?: number
   const w = Math.round(height * (275 / 395));
   return (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
-      <div className="deck-card" style={{ width: w, height, transform: 'rotate(-3deg)', flex: 'none' }}>
-        <Silhouette shape={idea.shape} color="var(--pink-shape)" />
+      <div className={`deck-card ${catClass(idea.category)}`} style={{ width: w, height, transform: 'rotate(-3deg)', flex: 'none' }}>
+        <Silhouette shape={idea.shape} />
         <div style={{ position: 'absolute', top: 22, left: 0, right: 0, textAlign: 'center' }}><Logo dark small /></div>
         <div
           className="font-head"
