@@ -14,11 +14,25 @@ const pxList = { padding: '0 20px' } as const;
    За ней две бледные карты, выглядывающие влево и вправо. */
 export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: (id: string) => void; height?: number }) {
   const [idx, setIdx] = useState(0);
+  const dragX = React.useRef<number | null>(null);
+  const swiped = React.useRef(false);
   const n = ideas.length;
   const cur = ideas[idx % n];
   const w = Math.round(height * (275 / 395));
+  const flip = (dir: 1 | -1) => setIdx((i) => (i + (dir === 1 ? 1 : n - 1)) % n);
   return (
-    <div style={{ position: 'relative', height, display: 'flex', justifyContent: 'center' }}>
+    <div
+      style={{ position: 'relative', height, display: 'flex', justifyContent: 'center', touchAction: 'pan-y' }}
+      onPointerDown={(e) => { dragX.current = e.clientX; swiped.current = false; }}
+      onPointerMove={(e) => { if (dragX.current != null && Math.abs(e.clientX - dragX.current) > 12) swiped.current = true; }}
+      onPointerUp={(e) => {
+        if (dragX.current == null) return;
+        const dx = e.clientX - dragX.current;
+        dragX.current = null;
+        if (Math.abs(dx) > 40) flip(dx < 0 ? 1 : -1);
+      }}
+      onPointerCancel={() => { dragX.current = null; }}
+    >
       <div style={{ position: 'relative', width: w, height }}>
         {n > 1 &&
           [
@@ -40,10 +54,11 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
         <button
           key={cur.id}
           className="deck-card"
-          onClick={() => onOpen?.(cur.id)}
+          onClick={() => { if (swiped.current) { swiped.current = false; return; } onOpen?.(cur.id); }}
           style={{
             position: 'absolute', inset: 0, border: 'none', padding: 0, zIndex: 3,
             transform: 'rotate(-3deg)', cursor: onOpen ? 'pointer' : 'default', display: 'block',
+            animation: 'cardIn .18s ease-out',
           }}
           aria-label={cur.title}
         >
@@ -428,9 +443,11 @@ export function Home({ ctx }: { ctx: AppCtx }) {
   const list = useMemo(() => (cat === 'все' ? IDEAS : IDEAS.filter((i) => i.category === cat)), [cat]);
   return (
     <div style={{ paddingBottom: 130 }}>
-      <div style={{ height: 92 }} />
-      <Deck ideas={IDEAS.slice(0, 5)} onOpen={(id) => ctx.go({ name: 'idea', id })} height={360} />
-      <div className="sheet" style={{ marginTop: 6, minHeight: '55dvh' }}>
+      <div className="deck-stick">
+        <div style={{ height: 92 }} />
+        <Deck ideas={IDEAS.slice(0, 5)} onOpen={(id) => ctx.go({ name: 'idea', id })} height={360} />
+      </div>
+      <div className="sheet" style={{ marginTop: -46, minHeight: '55dvh' }}>
         <div className="sheet-handle" />
         <div style={px}>
           <h1 className="h1" style={{ margin: 0 }}>Все карточки</h1>
@@ -459,9 +476,11 @@ export function IdeaDetail({ ctx, id }: { ctx: AppCtx; id: string }) {
   const liked = ctx.favorites.includes(idea.id);
   return (
     <div style={{ paddingBottom: 130 }}>
-      <div style={{ height: 92 }} />
-      <SingleCard idea={idea} height={300} />
-      <div className="sheet" style={{ marginTop: -30 }}>
+      <div className="deck-stick">
+        <div style={{ height: 92 }} />
+        <SingleCard idea={idea} height={300} />
+      </div>
+      <div className="sheet" style={{ marginTop: -46 }}>
         <div className="sheet-handle" />
         <div style={px}>
           <h1 className="h2" style={{ margin: 0 }}>{idea.title}</h1>
