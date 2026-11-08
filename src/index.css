@@ -71,9 +71,13 @@ body {
   -webkit-user-select: none;
 }
 
-@keyframes cardIn {
-  from { transform: rotate(-3deg) translateX(42px); opacity: 0.3; }
-  to { transform: rotate(-3deg) translateX(0); opacity: 1; }
+@keyframes deckIn {
+  from { transform: rotate(-3deg) scale(0.92); opacity: 0.4; }
+  to { transform: rotate(-3deg) scale(1); opacity: 1; }
+}
+@keyframes flipIn {
+  from { transform: perspective(900px) rotateY(60deg); opacity: 0.2; }
+  to { transform: perspective(900px) rotateY(0); opacity: 1; }
 }
 
 .sheet {

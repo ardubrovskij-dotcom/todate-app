@@ -11,54 +11,114 @@ const pxList = { padding: '0 20px' } as const;
 
 /* ================= КОЛОДА =================
    Передняя карта 275×395, радиус 24, поворот −3°.
-   За ней две бледные карты, выглядывающие влево и вправо. */
+   За ней две бледные карты, выглядывающие влево и вправо.
+   Свайп: карта следует за пальцем с наклоном, при броске улетает,
+   задние карты плавно подъезжают на её место.
+   Вариант анимации: ?anim=fly (по умолч.) | deal | flip */
+type DeckAnim = 'fly' | 'deal' | 'flip';
+const deckAnim: DeckAnim = (() => {
+  try {
+    const a = new URLSearchParams(window.location.search).get('anim');
+    return a === 'deal' || a === 'flip' ? a : 'fly';
+  } catch {
+    return 'fly';
+  }
+})();
+
 export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: (id: string) => void; height?: number }) {
   const [idx, setIdx] = useState(0);
-  const dragX = React.useRef<number | null>(null);
+  const [drag, setDrag] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [leaving, setLeaving] = useState<0 | 1 | -1>(0);
+  const startX = React.useRef<number | null>(null);
   const swiped = React.useRef(false);
   const n = ideas.length;
   const cur = ideas[idx % n];
   const w = Math.round(height * (275 / 395));
-  const flip = (dir: 1 | -1) => setIdx((i) => (i + (dir === 1 ? 1 : n - 1)) % n);
+  const p = Math.min(Math.abs(drag) / 120, 1);
+
+  const finishLeave = (dir: 1 | -1) => {
+    setLeaving(dir);
+    setDragging(false);
+    window.setTimeout(() => {
+      setIdx((i) => (i + (dir === 1 ? 1 : n - 1)) % n);
+      setLeaving(0);
+      setDrag(0);
+    }, 240);
+  };
+
+  const frontTransform = (): React.CSSProperties => {
+    if (leaving !== 0) {
+      if (deckAnim === 'flip')
+        return { transform: `perspective(900px) rotateY(${leaving * -80}deg)`, opacity: 0, transition: 'transform .24s ease-in, opacity .24s ease-in' };
+      if (deckAnim === 'deal')
+        return { transform: `translateY(${height * 0.6}px) rotate(${leaving * -10}deg)`, opacity: 0, transition: 'transform .24s ease-in, opacity .24s ease-in' };
+      return { transform: `translateX(${leaving * (w + 240)}px) rotate(${leaving * 22}deg)`, opacity: 0.9, transition: 'transform .26s ease-in, opacity .26s ease-in' };
+    }
+    return {
+      transform: `translateX(${drag}px) rotate(${-3 + drag * 0.05}deg)`,
+      transition: dragging ? 'none' : 'transform .32s cubic-bezier(.2,.8,.3,1.15)',
+    };
+  };
+
   return (
     <div
       style={{ position: 'relative', height, display: 'flex', justifyContent: 'center', touchAction: 'pan-y' }}
-      onPointerDown={(e) => { dragX.current = e.clientX; swiped.current = false; }}
-      onPointerMove={(e) => { if (dragX.current != null && Math.abs(e.clientX - dragX.current) > 12) swiped.current = true; }}
-      onPointerUp={(e) => {
-        if (dragX.current == null) return;
-        const dx = e.clientX - dragX.current;
-        dragX.current = null;
-        if (Math.abs(dx) > 40) flip(dx < 0 ? 1 : -1);
+      onPointerDown={(e) => {
+        if (leaving !== 0) return;
+        startX.current = e.clientX;
+        swiped.current = false;
+        setDragging(true);
+        (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
       }}
-      onPointerCancel={() => { dragX.current = null; }}
+      onPointerMove={(e) => {
+        if (startX.current == null) return;
+        const dx = e.clientX - startX.current;
+        if (Math.abs(dx) > 8) swiped.current = true;
+        setDrag(dx);
+      }}
+      onPointerUp={(e) => {
+        if (startX.current == null) return;
+        const dx = e.clientX - startX.current;
+        startX.current = null;
+        setDragging(false);
+        if (Math.abs(dx) > 90) finishLeave(dx < 0 ? 1 : -1);
+        else setDrag(0);
+      }}
+      onPointerCancel={() => { startX.current = null; setDragging(false); setDrag(0); }}
     >
       <div style={{ position: 'relative', width: w, height }}>
         {n > 1 &&
           [
             { rot: -9, x: -20, y: 10, bg: '#D8D6F3' },
             { rot: 8, x: 20, y: 8, bg: '#D6E4F8' },
-          ].map((b, k) => (
-            <button
-              key={k}
-              className="deck-card"
-              onClick={() => setIdx((idx + 1) % n)}
-              aria-label="Следующая карта"
-              style={{
-                position: 'absolute', inset: 0, border: 'none', padding: 0,
-                transform: `rotate(${b.rot}deg) translate(${b.x}px, ${b.y}px)`,
-                background: b.bg, boxShadow: 'none', zIndex: k + 1, cursor: 'pointer',
-              }}
-            />
-          ))}
+          ].map((b, k) => {
+            const near = k === 1;
+            const q = near ? 1 - p : 1;
+            return (
+              <button
+                key={k}
+                className="deck-card"
+                onClick={() => { if (leaving === 0) finishLeave(1); }}
+                aria-label="Следующая карта"
+                style={{
+                  position: 'absolute', inset: 0, border: 'none', padding: 0,
+                  transform: `rotate(${b.rot * q}deg) translate(${b.x * q}px, ${b.y * q}px) scale(${near ? 0.97 + 0.03 * p : 0.97})`,
+                  transition: dragging ? 'none' : 'transform .3s ease',
+                  background: b.bg, boxShadow: 'none', zIndex: k + 1, cursor: 'pointer',
+                }}
+              />
+            );
+          })}
         <button
           key={cur.id}
           className="deck-card"
           onClick={() => { if (swiped.current) { swiped.current = false; return; } onOpen?.(cur.id); }}
           style={{
             position: 'absolute', inset: 0, border: 'none', padding: 0, zIndex: 3,
-            transform: 'rotate(-3deg)', cursor: onOpen ? 'pointer' : 'default', display: 'block',
-            animation: 'cardIn .18s ease-out',
+            cursor: onOpen ? (dragging ? 'grabbing' : 'grab') : 'default', display: 'block',
+            animation: deckAnim === 'flip' ? 'flipIn .3s ease-out' : 'deckIn .22s ease-out',
+            ...frontTransform(),
           }}
           aria-label={cur.title}
         >
