@@ -8,7 +8,8 @@ const ic = (d: React.ReactNode) => (
 export const IconBell = () => ic(<><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></>);
 export const IconSearch = () => ic(<><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></>);
 export const IconCards = () => ic(<><rect x="3" y="6" width="13" height="15" rx="2.5" /><path d="M8 3h11a2 2 0 0 1 2 2v13" /></>);
-export const IconRoute = () => ic(<><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z" /><circle cx="12" cy="10" r="2.6" /></>);
+export const IconRoute = () => ic(<><path d="M9 5 3.5 7v13L9 18l6 2 5.5-2V5L15 7 9 5z" /><path d="M12 13.8s2.7-2.4 2.7-4.2a2.7 2.7 0 1 0-5.4 0c0 1.8 2.7 4.2 2.7 4.2z" fill="currentColor" stroke="none" /></>);
+export const IconChatHeart = () => ic(<><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3-.4-4.2-1L3 20l1-5.3A8.5 8.5 0 1 1 21 11.5z" /><path d="m12 14.8-2.8-2.7a1.95 1.95 0 1 1 2.8-2.7 1.95 1.95 0 1 1 2.8 2.7L12 14.8z" /></>);
 export const IconHeart = ({ filled }: { filled?: boolean }) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M19.5 12.6 12 20l-7.5-7.4A5 5 0 1 1 12 6.1a5 5 0 1 1 7.5 6.5z" />
@@ -77,10 +78,75 @@ export function Silhouette({ shape, color = 'rgba(255,255,255,0.20)' }: { shape:
           <path d="M34 100c10-20 26-34 44-42" stroke="rgba(255,255,255,0.35)" strokeWidth="3" fill="none" />
         </svg>
       );
+    /* --- Категорийные символы из макета --- */
+    case 'fork': // еда — вилка
+      return (
+        <svg style={common} viewBox="0 0 100 120" aria-hidden="true">
+          <g fill="currentColor" transform="rotate(-7 50 62)">
+            <rect x="2" y="38" width="30" height="7" rx="3.5" />
+            <rect x="2" y="51" width="30" height="7" rx="3.5" />
+            <rect x="2" y="64" width="30" height="7" rx="3.5" />
+            <rect x="2" y="77" width="30" height="7" rx="3.5" />
+            <path d="M26 34h12c15 8 15 46 0 54H26c8-9 8-45 0-54z" />
+            <rect x="44" y="54" width="58" height="13" rx="6.5" />
+          </g>
+        </svg>
+      );
+    case 'rays': // отдых — лучи солнца
+      return (
+        <svg style={common} viewBox="0 0 100 120" aria-hidden="true">
+          <g fill="currentColor">
+            <path d="M-22 98 122 -12v20L-22 118z" />
+            <path d="M-22 62 122 -48v12L-22 74z" />
+            <path d="M30 122 122 76v16L48 122z" />
+            <path d="M-22 22 122 -84v8L-22 30z" />
+          </g>
+        </svg>
+      );
+    case 'flower': // релакс — цветок
+      return (
+        <svg style={common} viewBox="0 0 100 120" aria-hidden="true">
+          <g fill="currentColor" transform="translate(50 62)">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <ellipse key={i} cx="0" cy="-25" rx="11" ry="24" transform={`rotate(${i * 45})`} />
+            ))}
+            <circle r="10" />
+          </g>
+        </svg>
+      );
+    case 'sofa': // дома — диван
+      return (
+        <svg style={common} viewBox="0 0 100 120" aria-hidden="true">
+          <g fill="currentColor">
+            <rect x="12" y="40" width="76" height="34" rx="15" />
+            <rect x="4" y="60" width="17" height="36" rx="8.5" />
+            <rect x="79" y="60" width="17" height="36" rx="8.5" />
+            <rect x="15" y="70" width="70" height="26" rx="11" />
+            <rect x="16" y="96" width="6" height="13" rx="3" />
+            <rect x="78" y="96" width="6" height="13" rx="3" />
+          </g>
+        </svg>
+      );
     default:
       return null;
   }
 }
+
+/* Символ и цвет силуэта на плитке категории (из макета) */
+export const tileShape: Record<Category, string> = { 'еда': 'fork', 'отдых': 'rays', 'релакс': 'flower', 'дома': 'sofa' };
+export const tileShapeColor: Record<Category, string> = {
+  'еда': '#4E1016',
+  'отдых': 'rgba(206,184,54,0.55)',
+  'релакс': 'rgba(255,255,255,0.30)',
+  'дома': 'rgba(255,255,255,0.38)',
+};
+/* Цвет абстрактных пятен на картах колоды */
+export const cardShapeColor: Record<Category, string> = {
+  'еда': 'var(--pink-shape)',
+  'отдых': 'rgba(238,218,100,0.85)',
+  'релакс': 'rgba(255,255,255,0.25)',
+  'дома': 'rgba(255,255,255,0.30)',
+};
 
 export const catClass = (c: Category) => `cat-${c}`;
 export const catLabel = (c: Category) => c[0].toUpperCase() + c.slice(1);
@@ -89,7 +155,10 @@ export const catLabel = (c: Category) => c[0].toUpperCase() + c.slice(1);
 export function Header({ onBell, onSearch }: { onBell: () => void; onSearch: () => void }) {
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 20px 0' }}>
-      <button className="circle-btn" onClick={onBell} aria-label="Уведомления"><IconBell /></button>
+      <button className="circle-btn" onClick={onBell} aria-label="Уведомления" style={{ position: 'relative' }}>
+        <IconBell />
+        <span style={{ position: 'absolute', top: 10, right: 12, width: 9, height: 9, borderRadius: '50%', background: 'var(--primary)', border: '2px solid var(--surface)' }} />
+      </button>
       <div style={{ paddingTop: 4 }}><Logo /></div>
       <button className="circle-btn" onClick={onSearch} aria-label="Поиск"><IconSearch /></button>
     </div>
@@ -104,7 +173,7 @@ export function BottomNav({ active, go, initial }: { active: NavKey; go: (k: Nav
       <div className="navbar-pill">
         <button className={`nav-ic ${active === 'home' ? 'active' : ''}`} onClick={() => go('home')} aria-label="Каталог" title="Каталог"><IconCards /></button>
         <button className={`nav-ic ${active === 'routes' ? 'active' : ''}`} onClick={() => go('routes')} aria-label="Маршруты" title="Маршруты"><IconRoute /></button>
-        <button className={`nav-ic ${active === 'favorites' ? 'active' : ''}`} onClick={() => go('favorites')} aria-label="Избранное" title="Избранное"><IconHeart /></button>
+        <button className={`nav-ic ${active === 'favorites' ? 'active' : ''}`} onClick={() => go('favorites')} aria-label="Избранное" title="Избранное"><IconChatHeart /></button>
       </div>
       <button className="avatar-fab" onClick={() => go('profile')} aria-label="Профиль">
         <span>{initial}</span>
@@ -117,7 +186,7 @@ export function BottomNav({ active, go, initial }: { active: NavKey; go: (k: Nav
 export function IdeaTile({ idea, onClick }: { idea: { id: string; title: string; category: Category; shape: string }; onClick: () => void }) {
   return (
     <button className={`tile ${catClass(idea.category)}`} onClick={onClick}>
-      <Silhouette shape={idea.shape} />
+      <Silhouette shape={tileShape[idea.category]} color={tileShapeColor[idea.category]} />
       <span className="tag">{catLabel(idea.category)}</span>
       <span className="tile-label">{idea.title}</span>
     </button>

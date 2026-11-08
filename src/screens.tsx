@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { CATEGORIES, DISTRICTS, EVENTS, IDEAS, NOTES, PLANS, ROUTES, type Category, type Idea } from './data';
 import {
   Logo, Silhouette, IdeaTile, PhotoStub, MapStub, IconHeart, IconShare, IconChevron,
-  IconCheck, IconChat, IconUser, IconTheme, IconLang, IconSliders, catClass,
+  IconCheck, IconChat, IconUser, IconTheme, IconLang, IconSliders, catClass, cardShapeColor,
 } from './ui';
 import type { AppCtx } from './App';
 
@@ -51,10 +51,10 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
     }, 320);
   };
 
-  /* Позы задних карт: ближняя (1) и дальняя (2) */
+  /* Позы задних карт: веером влево и вправо, почти в полный размер (как в макете) */
   const BACK_POSES = [
-    { rot: 8, x: 20, y: 8, scale: 0.94 },
-    { rot: -9, x: -20, y: 12, scale: 0.9 },
+    { rot: 7, x: 42, y: 4, scale: 0.965 },
+    { rot: -8, x: -42, y: 10, scale: 0.93 },
   ];
 
   const frontTransform = (): React.CSSProperties => {
@@ -137,7 +137,7 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
                   boxShadow: 'none', zIndex: near ? 2 : 1, cursor: near ? 'pointer' : 'default',
                 }}
               >
-                <Silhouette shape={back.shape} />
+                <Silhouette shape={back.shape} color={cardShapeColor[back.category]} />
                 <div style={{ position: 'absolute', top: 22, left: 0, right: 0, textAlign: 'center' }}><Logo dark small /></div>
                 <div
                   className="font-head"
@@ -164,7 +164,7 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
             }}
             aria-label={cur.title}
           >
-            <Silhouette shape={cur.shape} />
+            <Silhouette shape={cur.shape} color={cardShapeColor[cur.category]} />
             <div style={{ position: 'absolute', top: 22, left: 0, right: 0, textAlign: 'center' }}><Logo dark small /></div>
             <div
               className="font-head"
@@ -207,7 +207,7 @@ export function SingleCard({ idea, height = 300 }: { idea: Idea; height?: number
   return (
     <div style={{ display: 'flex', justifyContent: 'center' }}>
       <div className={`deck-card ${catClass(idea.category)}`} style={{ width: w, height, transform: 'rotate(-3deg)', flex: 'none' }}>
-        <Silhouette shape={idea.shape} />
+        <Silhouette shape={idea.shape} color={cardShapeColor[idea.category]} />
         <div style={{ position: 'absolute', top: 22, left: 0, right: 0, textAlign: 'center' }}><Logo dark small /></div>
         <div
           className="font-head"
@@ -233,8 +233,8 @@ export const TinyLogo = () => (
 /* Мини-карта колоды для писем и плашек */
 export function MiniCard({ idea, w = 150, h = 190 }: { idea: Idea; w?: number; h?: number }) {
   return (
-    <div className="deck-card" style={{ width: w, height: h, margin: '0 auto', transform: 'rotate(-3deg)' }}>
-      <Silhouette shape={idea.shape} color="var(--pink-shape)" />
+    <div className={`deck-card ${catClass(idea.category)}`} style={{ width: w, height: h, margin: '0 auto', transform: 'rotate(-3deg)' }}>
+      <Silhouette shape={idea.shape} color={cardShapeColor[idea.category]} />
       <div style={{ position: 'absolute', top: 12, left: 0, right: 0, textAlign: 'center' }}><TinyLogo /></div>
       <div className="font-head" style={{ position: 'absolute', left: 12, right: 12, top: '50%', transform: 'translateY(-44%)', fontSize: Math.round(w / 9.4), lineHeight: 1.05, color: 'var(--card-ink)', textAlign: 'center' }}>
         {idea.title}
@@ -474,7 +474,7 @@ export function IdeaDetail({ ctx, id }: { ctx: AppCtx; id: string }) {
     <div style={{ paddingBottom: 130 }}>
       <div className="deck-stick">
         <div style={{ height: 92 }} />
-        <SingleCard idea={idea} height={300} />
+        <SingleCard idea={idea} height={330} />
       </div>
       <div className="sheet" style={{ marginTop: -46 }}>
         <div className="sheet-handle" />

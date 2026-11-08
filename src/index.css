@@ -200,6 +200,8 @@ body {
   font-size: 13px; line-height: 17px; text-align: center; color: var(--text);
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
+/* На лавандовой и голубой плитках текст белый (из макета) */
+.cat-релакс .tile-label, .cat-дома .tile-label { color: #fff; }
 .tag {
   position: absolute; top: 12px; left: 12px; height: 24px; padding: 0 12px;
   border-radius: 12px; background: #fff; font-size: 12px; font-weight: 600;
