@@ -105,9 +105,9 @@ export function Deck({ ideas, onOpen, height = 395 }: { ideas: Idea[]; onOpen?: 
         const v = vel.current;
         startX.current = null;
         setDragging(false);
-        // Летит, если тянули достаточно далеко ИЛИ бросили быстро
+        // Летит, если тянули достаточно далеко ИЛИ бросили быстро — туда, куда тянул палец
         if (Math.abs(dx) > 60 || Math.abs(v) > 0.45) {
-          const dir = dx + v * 120 < 0 ? 1 : -1;
+          const dir = dx + v * 120 > 0 ? 1 : -1;
           finishLeave(dir);
         } else {
           setDrag(0);
@@ -756,7 +756,12 @@ export function MyHints({ ctx }: { ctx: AppCtx }) {
                       <div style={{ fontSize: 10, color: 'var(--text-2)', marginTop: 4 }}>{h.to} · {h.date}</div>
                       <div style={{ marginTop: 'auto' }}>
                         <span className={`status ${h.status === 'услышан' ? 'status-ok' : 'status-neutral'}`}>
-                          <IconCheck /> {h.status === 'услышан' ? 'Услышан' : 'Отправлен'}
+                          {h.status === 'услышан' ? (
+                            <svg viewBox="0 0 12 12" fill="none" stroke="#fff" strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="5" /><path d="M4.2 6.15 5.4 7.35 7.9 4.7" /></svg>
+                          ) : (
+                            <svg viewBox="0 0 12 12" fill="none" stroke="#fff" strokeWidth="0.9" strokeLinecap="round"><circle cx="6" cy="6" r="5" /><path d="M6 3.6v3.4" /><circle cx="6" cy="8.6" r="0.6" fill="#fff" stroke="none" /></svg>
+                          )}
+                          {h.status === 'услышан' ? 'Услышан' : 'Отправлен'}
                         </span>
                       </div>
                     </div>

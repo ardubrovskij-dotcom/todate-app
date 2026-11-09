@@ -65,6 +65,18 @@ export default function App() {
   useEffect(() => { localStorage.setItem('td_profile', JSON.stringify(profile)); }, [profile]);
   useEffect(() => { localStorage.setItem('td_registered', JSON.stringify(registered)); }, [registered]);
 
+  // Масштабируем холст 390×844 под реальный вьюпорт, чтобы экраны не давали «серых полей» при скролле
+  useEffect(() => {
+    const apply = () => {
+      const s = Math.min(window.innerWidth / 390, window.innerHeight / 844);
+      const phone = document.querySelector('.phone') as HTMLElement | null;
+      if (phone) phone.style.zoom = String(s);
+    };
+    apply();
+    window.addEventListener('resize', apply);
+    return () => window.removeEventListener('resize', apply);
+  }, []);
+
   const go = useCallback((r: Route) => {
     setRoute((cur) => { historyRef.current = [...historyRef.current, cur]; return r; });
     window.location.hash = `/${r.name}${r.id ? `/${r.id}` : ''}`;
