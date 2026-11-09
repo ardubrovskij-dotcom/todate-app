@@ -773,6 +773,16 @@ export function MyHints({ ctx }: { ctx: AppCtx }) {
 }
 
 /* ================= ИЗБРАННОЕ ================= */
+/* Каскад мини-карт из макета: x/y/поворот в координатах канваса 390px */
+const FAN_POSES = [
+  { x: 55, y: 0, rot: -16 },    // лавандовая, верх-лево
+  { x: 194, y: 30, rot: 12.6 }, // голубая, верх-право
+  { x: 134, y: 46, rot: -10.9 },// розовая, центр
+  { x: 26, y: 100, rot: 4.6 },  // голубая, лево
+  { x: 216, y: 138, rot: -9.2 },// жёлтая, право
+  { x: 114, y: 164, rot: 9.2 }, // розовая, низ
+];
+
 export function Favorites({ ctx }: { ctx: AppCtx }) {
   const [cat, setCat] = useState<Category | 'все'>('все');
   const [priceF, setPriceF] = useState<PriceFilter | null>(null);
@@ -780,32 +790,33 @@ export function Favorites({ ctx }: { ctx: AppCtx }) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const favs = IDEAS.filter((i) => ctx.favorites.includes(i.id));
   const list = favs.filter((i) => (cat === 'все' || i.category === cat) && matchPrice(i, priceF) && matchDur(i, durF));
-  const fan = favs.slice(0, 5);
+  const fan = favs.slice(0, 6);
+  const fanPoses = FAN_POSES.slice(0, fan.length);
+  const fanHeight = fan.length ? Math.max(...fanPoses.map((p) => p.y)) + 190 : 0;
   return (
     <div style={{ paddingBottom: 130 }}>
       <div style={{ height: 92 }} />
       {fan.length > 0 && (
-        <div style={{ height: 260, position: 'relative', margin: '0 20px' }}>
+        <div style={{ height: fanHeight, position: 'relative', maxWidth: 390, margin: '0 auto' }}>
           {fan.map((idea, k) => {
-            const mid = (fan.length - 1) / 2;
-            const off = k - mid;
+            const pose = fanPoses[k];
             return (
               <button
                 key={idea.id}
                 className={`deck-card ${catClass(idea.category)}`}
                 onClick={() => ctx.go({ name: 'idea', id: idea.id })}
                 style={{
-                  position: 'absolute', width: 124, height: 182,
-                  left: `calc(50% - 62px + ${off * 64}px)`, top: 26 + Math.abs(off) * 12,
-                  transform: `rotate(${off * 14}deg)`, border: '2px solid rgba(255,255,255,.7)', cursor: 'pointer',
-                  zIndex: 10 - Math.abs(off),
+                  position: 'absolute', width: 150, height: 190, borderRadius: 10,
+                  left: pose.x, top: pose.y,
+                  transform: `rotate(${pose.rot}deg)`, border: 'none', cursor: 'pointer',
+                  zIndex: k + 1,
                   boxShadow: '0 6px 18px rgba(48,8,9,0.10)',
                 }}
                 aria-label={idea.title}
               >
-                <Silhouette shape={idea.shape} />
+                <Silhouette shape={idea.shape} color={cardShapeColor[idea.category]} />
                 <div style={{ position: 'absolute', top: 10, left: 0, right: 0, textAlign: 'center' }}><TinyLogo /></div>
-                <span className="font-head" style={{ position: 'absolute', inset: '42px 10px 8px', fontSize: 12, lineHeight: '13px', color: 'var(--card-ink)', textAlign: 'center', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                <span className="font-head" style={{ position: 'absolute', inset: '38px 10px 8px', fontSize: 12, lineHeight: '13px', color: 'var(--card-ink)', textAlign: 'center', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {idea.title}
                 </span>
               </button>
@@ -813,7 +824,7 @@ export function Favorites({ ctx }: { ctx: AppCtx }) {
           })}
         </div>
       )}
-      <div className="sheet" style={{ marginTop: 0, minHeight: '50dvh' }}>
+      <div className="sheet" style={{ marginTop: fan.length ? 42 : 0, minHeight: '50dvh' }}>
         <div className="sheet-handle" />
         <div style={px}>
           <h1 className="h1" style={{ margin: 0 }}>Всё избранное</h1>
