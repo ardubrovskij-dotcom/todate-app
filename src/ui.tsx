@@ -151,16 +151,16 @@ export const cardShapeColor: Record<Category, string> = {
 export const catClass = (c: Category) => `cat-${c}`;
 export const catLabel = (c: Category) => c[0].toUpperCase() + c.slice(1);
 
-/* ---------- Шапка ---------- */
+/* ---------- Шапка (всегда зафиксирована сверху) ---------- */
 export function Header({ onBell, onSearch }: { onBell: () => void; onSearch: () => void }) {
   return (
-    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 20px 0' }}>
-      <button className="circle-btn" onClick={onBell} aria-label="Уведомления" style={{ position: 'relative' }}>
+    <div style={{ position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)', width: 'min(430px, 100%)', zIndex: 35, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 20px 0', pointerEvents: 'none' }}>
+      <button className="circle-btn" onClick={onBell} aria-label="Уведомления" style={{ position: 'relative', pointerEvents: 'auto' }}>
         <IconBell />
         <span style={{ position: 'absolute', top: 10, right: 12, width: 9, height: 9, borderRadius: '50%', background: 'var(--primary)', border: '2px solid var(--surface)' }} />
       </button>
       <div style={{ paddingTop: 4 }}><Logo /></div>
-      <button className="circle-btn" onClick={onSearch} aria-label="Поиск"><IconSearch /></button>
+      <button className="circle-btn" onClick={onSearch} aria-label="Поиск" style={{ pointerEvents: 'auto' }}><IconSearch /></button>
     </div>
   );
 }
