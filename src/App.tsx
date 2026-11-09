@@ -65,16 +65,23 @@ export default function App() {
   useEffect(() => { localStorage.setItem('td_profile', JSON.stringify(profile)); }, [profile]);
   useEffect(() => { localStorage.setItem('td_registered', JSON.stringify(registered)); }, [registered]);
 
-  // Масштабируем холст 390×844 под реальный вьюпорт, чтобы экраны не давали «серых полей» при скролле
+  // Масштабируем холст 390×844 под реальный экран.
+  // Высоту берём из screen.height — она стабильна и не зависит от панелей мобильного браузера,
+  // иначе Safari с тулбаром уменьшает innerHeight и весь макет «схлопывается» с серыми полями.
   useEffect(() => {
     const apply = () => {
-      const s = Math.min(window.innerWidth / 390, window.innerHeight / 844);
+      const h = Math.max(window.innerHeight, window.screen?.height || 0);
+      const s = Math.min(window.innerWidth / 390, h / 844);
       const phone = document.querySelector('.phone') as HTMLElement | null;
       if (phone) phone.style.zoom = String(s);
     };
     apply();
     window.addEventListener('resize', apply);
-    return () => window.removeEventListener('resize', apply);
+    window.addEventListener('orientationchange', apply);
+    return () => {
+      window.removeEventListener('resize', apply);
+      window.removeEventListener('orientationchange', apply);
+    };
   }, []);
 
   const go = useCallback((r: Route) => {
