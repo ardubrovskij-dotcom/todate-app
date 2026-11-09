@@ -228,8 +228,8 @@ export function SingleCard({ idea, height = 300 }: { idea: Idea; height?: number
 
 /* Крошечный логотип для мини-карт */
 export const TinyLogo = () => (
-  <span className="font-head" style={{ color: 'var(--card-ink)', fontSize: 9, letterSpacing: '0.06em', lineHeight: 1, whiteSpace: 'nowrap' }}>
-    TO&nbsp;D<span style={{ fontSize: '0.7em', verticalAlign: '0.14em' }}>✳</span>TE
+  <span style={{ color: 'var(--card-ink)', display: 'inline-flex', lineHeight: 0 }}>
+    <Logo dark h={9} />
   </span>
 );
 
@@ -522,7 +522,7 @@ export function Home({ ctx }: { ctx: AppCtx }) {
     [cat, priceF, durF],
   );
   return (
-    <div style={{ paddingBottom: 130 }}>
+    <div className="screen" style={{ paddingBottom: 130 }}>
       <div className="deck-stick">
         <div style={{ height: 100 }} />
         <Deck ideas={IDEAS.slice(0, 4)} onOpen={(id) => ctx.go({ name: 'idea', id })} height={395} />
@@ -572,7 +572,7 @@ export function IdeaDetail({ ctx, id }: { ctx: AppCtx; id: string }) {
   const idea = IDEAS.find((i) => i.id === id) ?? IDEAS[0];
   const liked = ctx.favorites.includes(idea.id);
   return (
-    <div style={{ paddingBottom: 130 }}>
+    <div className="screen" style={{ paddingBottom: 130 }}>
       <div className="deck-stick">
         <div style={{ height: 84 }} />
         <SingleCard idea={idea} height={360} />
@@ -617,7 +617,7 @@ export function HintForm({ ctx, id }: { ctx: AppCtx; id: string }) {
   const [agree, setAgree] = useState(false);
   const valid = /.+@.+\..+/.test(to) && agree && from.trim().length > 0;
   return (
-    <div style={{ paddingBottom: 130 }}>
+    <div className="screen" style={{ paddingBottom: 130 }}>
       <div style={{ height: 84 }} />
       <div className="sheet" style={{ marginTop: 10 }}>
         <div className="sheet-handle" />
@@ -691,7 +691,7 @@ export function HintForm({ ctx, id }: { ctx: AppCtx; id: string }) {
 export function HintSent({ ctx, id }: { ctx: AppCtx; id: string }) {
   const idea = IDEAS.find((i) => i.id === id) ?? IDEAS[0];
   return (
-    <div style={{ paddingBottom: 130 }}>
+    <div className="screen" style={{ paddingBottom: 130 }}>
       <div style={{ height: 84 }} />
       <div className="sheet" style={{ marginTop: 10 }}>
         <div className="sheet-handle" />
@@ -723,7 +723,7 @@ export function HintSent({ ctx, id }: { ctx: AppCtx; id: string }) {
 /* ================= МОИ НАМЁКИ ================= */
 export function MyHints({ ctx }: { ctx: AppCtx }) {
   return (
-    <div style={{ paddingBottom: 130 }}>
+    <div className="screen" style={{ paddingBottom: 130 }}>
       <div style={{ height: 84 }} />
       <div className="sheet" style={{ marginTop: 10, minHeight: '60dvh' }}>
         <div className="sheet-handle" />
@@ -799,7 +799,7 @@ export function Favorites({ ctx }: { ctx: AppCtx }) {
   const fanPoses = FAN_POSES.slice(0, fan.length);
   const fanHeight = fan.length ? Math.max(...fanPoses.map((p) => p.y)) + 190 : 0;
   return (
-    <div style={{ paddingBottom: 130 }}>
+    <div className="screen" style={{ paddingBottom: 130 }}>
       <div style={{ height: 92 }} />
       {fan.length > 0 && (
         <div style={{ height: fanHeight, position: 'relative', maxWidth: 390, margin: '0 auto' }}>
@@ -900,7 +900,7 @@ export function Routes({ ctx }: { ctx: AppCtx }) {
   const list = district === 'Все' ? ROUTES : ROUTES.filter((r) => r.district === district);
   const grouped = DISTRICTS.map((d) => ({ d, items: list.filter((r) => r.district === d) })).filter((g) => g.items.length > 0);
   return (
-    <div style={{ paddingBottom: 130 }}>
+    <div className="screen" style={{ paddingBottom: 130 }}>
       <MapStub markers={7} height={350} />
       <div className="sheet" style={{ marginTop: -40 }}>
         <div className="sheet-handle" />
@@ -952,7 +952,7 @@ export function Routes({ ctx }: { ctx: AppCtx }) {
 export function RouteDetail({ ctx, id }: { ctx: AppCtx; id: string }) {
   const route = ROUTES.find((r) => r.id === id) ?? ROUTES[0];
   return (
-    <div style={{ paddingBottom: 130 }}>
+    <div className="screen" style={{ paddingBottom: 130 }}>
       <MapStub markers={route.points.length + 2} route height={300} />
       <div className="sheet" style={{ marginTop: -40 }}>
         <div className="sheet-handle" />
@@ -993,7 +993,7 @@ export function RouteDetail({ ctx, id }: { ctx: AppCtx; id: string }) {
 export function Events({ ctx }: { ctx: AppCtx }) {
   const favs = EVENTS.slice(0, 3);
   return (
-    <div style={{ paddingBottom: 130 }}>
+    <div className="screen" style={{ paddingBottom: 130 }}>
       <div style={{ height: 84 }} />
       <div className="sheet" style={{ marginTop: 10, minHeight: '70dvh' }}>
         <div className="sheet-handle" />
@@ -1053,10 +1053,10 @@ export function Profile({ ctx }: { ctx: AppCtx }) {
     </button>
   );
   return (
-    <div style={{ paddingBottom: 130 }}>
+    <div className="screen" style={{ paddingBottom: 130 }}>
       <div style={{ height: 130, background: 'radial-gradient(60% 100% at 50% 0%, #C5D6EF 0%, var(--bg) 75%)' }} />
       <div className="sheet" style={{ marginTop: -48, minHeight: '55dvh' }}>
-        <div style={{ textAlign: 'center', marginTop: -48 }}>
+        <div style={{ textAlign: 'center', marginTop: 0 }}>
           <div className="avatar-fab" style={{ width: 96, height: 96, margin: '0 auto' }}>
             <span style={{ width: 88, height: 88, fontSize: 34 }}>{ctx.profile.name.charAt(0).toUpperCase()}</span>
           </div>
@@ -1087,7 +1087,7 @@ export function Account({ ctx }: { ctx: AppCtx }) {
   const [name, setName] = useState(ctx.profile.name);
   const [email, setEmail] = useState(ctx.profile.email);
   return (
-    <div style={{ paddingBottom: 130 }}>
+    <div className="screen" style={{ paddingBottom: 130 }}>
       <div style={{ height: 84 }} />
       <div className="sheet" style={{ marginTop: 10, minHeight: '60dvh' }}>
         <div className="sheet-handle" />
@@ -1147,7 +1147,7 @@ export function Paywall({ ctx }: { ctx: AppCtx }) {
   const [plan, setPlan] = useState('month');
   const chosen = PLANS.find((p) => p.id === plan)!;
   return (
-    <div style={{ paddingBottom: 130 }}>
+    <div className="screen" style={{ paddingBottom: 130 }}>
       <div style={{ height: 84 }} />
       <div className="sheet" style={{ marginTop: 10 }}>
         <div className="sheet-handle" />
@@ -1200,7 +1200,7 @@ export function Notes({ ctx }: { ctx: AppCtx }) {
   const [contact, setContact] = useState('');
   const valid = text.trim().length >= 10 && contact.trim().length >= 2;
   return (
-    <div style={{ paddingBottom: 130 }}>
+    <div className="screen" style={{ paddingBottom: 130 }}>
       <div style={{ height: 84 }} />
       <div className="sheet" style={{ marginTop: 10 }}>
         <div className="sheet-handle" />

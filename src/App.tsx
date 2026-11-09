@@ -73,7 +73,11 @@ export default function App() {
       const h = Math.max(window.innerHeight, window.screen?.height || 0);
       const s = Math.min(window.innerWidth / 390, h / 844);
       const phone = document.querySelector('.phone') as HTMLElement | null;
-      if (phone) phone.style.zoom = String(s);
+      if (phone) {
+        phone.style.zoom = String(s);
+        // Видимая высота в единицах канваса — чтобы шторки экранов ровно доходили до низа без серых полей
+        phone.style.setProperty('--canvas-h', `${window.innerHeight / s}px`);
+      }
     };
     apply();
     window.addEventListener('resize', apply);

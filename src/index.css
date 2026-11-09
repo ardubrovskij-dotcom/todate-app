@@ -92,6 +92,19 @@ body {
   position: relative;
   z-index: 2;
 }
+/* Экран, растянутый на всю видимую высоту канваса: шторка доходит до низа, серого поля нет */
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: var(--canvas-h, 100dvh);
+  box-sizing: border-box;
+}
+.screen > .sheet:last-child {
+  flex: 1;
+  /* белый фон шторки доходит до самого низа, отступ под навбар переезжает внутрь шторки */
+  margin-bottom: -130px;
+  padding-bottom: 130px;
+}
 .sheet-handle {
   width: 54px; height: 4px; border-radius: 2px;
   background: var(--handle-figma);
